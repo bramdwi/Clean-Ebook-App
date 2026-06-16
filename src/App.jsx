@@ -42,7 +42,6 @@ export default function App() {
   }
 
   const handleNavigate = (page) => {
-    if (page === 'upload') { setActivePage('upload'); return; }
     setActivePage(page);
   };
 
@@ -66,11 +65,11 @@ export default function App() {
         <FavoritesPage books={booksState.books} onSelectBook={(id) => setSelectedBookId(id)} />
       )}
       {activePage === 'search' && (
-        <SearchPage books={booksState.books} onSelectBook={(id) => setSelectedBookId(id)} />
+        <SearchPage books={booksState.books} onSelectBook={(id) => setSelectedBookId(id)}
+          searchQuery={booksState.searchQuery} setSearchQuery={booksState.setSearchQuery}
+          filteredBooks={booksState.filteredBooks} />
       )}
-      {activePage !== 'upload' && (
-        <BottomNav activePage={activePage} onNavigate={handleNavigate} />
-      )}
+      <BottomNav activePage={activePage} onNavigate={handleNavigate} />
     </>
   );
 }

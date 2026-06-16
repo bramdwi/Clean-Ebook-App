@@ -1,4 +1,4 @@
-import { Heart, BookOpen } from 'lucide-react';
+import { Heart, BookOpen, Search } from 'lucide-react';
 import { BookCover } from '../components/BookCover';
 import styles from './SubPage.module.css';
 
@@ -50,7 +50,7 @@ export function FavoritesPage({ books, onSelectBook }) {
 
 export function ReadingPage({ books, onSelectBook }) {
   const reading = books.filter(b => b.currentPage > 0 && b.currentPage < b.pages);
-  const finished = books.filter(b => b.currentPage >= b.pages && b.pages > 0);
+  const finished = books.filter(b => b.pages > 0 && b.currentPage >= b.pages);
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -58,35 +58,44 @@ export function ReadingPage({ books, onSelectBook }) {
         <p className={styles.sub}>{reading.length} in progress</p>
       </header>
       <main className={styles.main}>
-        {reading.length > 0 && (
-          <>
-            <p className={styles.sectionLabel}>In Progress</p>
-            {reading.map(b => <BookRow key={b.id} book={b} onSelect={onSelectBook} />)}
-          </>
-        )}
-        {finished.length > 0 && (
-          <>
-            <p className={styles.sectionLabel}>Finished</p>
-            {finished.map(b => <BookRow key={b.id} book={b} onSelect={onSelectBook} />)}
-          </>
-        )}
-        {reading.length === 0 && finished.length === 0 && (
+        {reading.length > 0 && <>
+          <p className={styles.sectionLabel}>In Progress</p>
+          {reading.map(b => <BookRow key={b.id} book={b} onSelect={onSelectBook} />)}
+        </>}
+        {finished.length > 0 && <>
+          <p className={styles.sectionLabel}>Finished</p>
+          {finished.map(b => <BookRow key={b.id} book={b} onSelect={onSelectBook} />)}
+        </>}
+        {reading.length === 0 && finished.length === 0 &&
           <EmptyState icon={BookOpen} message="Start reading a book from your library!" />
-        )}
+        }
       </main>
     </div>
   );
 }
 
-export function SearchPage({ books, onSelectBook }) {
+export function SearchPage({ books, onSelectBook, searchQuery, setSearchQuery, filteredBooks }) {
+  const results = searchQuery ? filteredBooks : [];
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.heading}>Search</h1>
-        <p className={styles.sub}>Use the search bar in Library</p>
+        <div className={styles.searchBox}>
+          <Search size={16} className={styles.searchIcon} />
+          <input
+            type="search"
+            placeholder="Search books, authors..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className={styles.searchInput}
+            autoFocus
+          />
+        </div>
       </header>
       <main className={styles.main}>
-        <EmptyState icon={BookOpen} message="Go to Library and use the search bar to find books." />
+        {!searchQuery && <EmptyState icon={Search} message="Type to search your library" />}
+        {searchQuery && results.length === 0 && <EmptyState icon={BookOpen} message={`No results for "${searchQuery}"`} />}
+        {results.map(b => <BookRow key={b.id} book={b} onSelect={onSelectBook} />)}
       </main>
     </div>
   );

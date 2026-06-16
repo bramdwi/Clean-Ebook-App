@@ -1,46 +1,67 @@
-import { useState, useRef, useCallback } from 'react';
-import { ArrowLeft, ChevronLeft, ChevronRight, Minus, Plus, Maximize2 } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Minus, Plus, Loader } from 'lucide-react';
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
 import styles from './Reader.module.css';
 
-// Simple text-based reader since we're using sample data (no actual PDFs)
-// In production, integrate react-pdf here
-export function Reader({ book, onBack, onUpdateProgress }) {
-  const [currentPage, setCurrentPage] = useState(book.currentPage || 1);
-  const [fontSize, setFontSize] = useState(16);
-  const [showControls, setShowControls] = useState(true);
-  const controlsTimer = useRef(null);
+// Set worker
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
-  const totalPages = book.pages || 100;
-  const progress = Math.round((currentPage / totalPages) * 100);
+export function Reader({ book, onBack, onUpdateProgress }) {
+  const [numPages, setNumPages] = useState(null);
+  const [currentPage, setCurrentPage] = useState(book.currentPage > 0 ? book.currentPage : 1);
+  const [scale, setScale] = useState(1.0);
+  const [showControls, setShowControls] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const controlsTimer = useRef(null);
+  const containerRef = useRef();
+  const [containerWidth, setContainerWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setContainerWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    // Auto-hide controls after 3s
+    clearTimeout(controlsTimer.current);
+    if (showControls) {
+      controlsTimer.current = setTimeout(() => setShowControls(false), 3000);
+    }
+    return () => clearTimeout(controlsTimer.current);
+  }, [showControls]);
 
   const goTo = useCallback((page) => {
-    const p = Math.max(1, Math.min(totalPages, page));
+    if (!numPages) return;
+    const p = Math.max(1, Math.min(numPages, page));
     setCurrentPage(p);
     onUpdateProgress(book.id, p);
-  }, [totalPages, book.id, onUpdateProgress]);
+    window.scrollTo(0, 0);
+  }, [numPages, book.id, onUpdateProgress]);
 
-  const handleTap = (e) => {
-    const x = e.clientX / window.innerWidth;
-    if (x < 0.25) goTo(currentPage - 1);
-    else if (x > 0.75) goTo(currentPage + 1);
-    else {
-      setShowControls(c => !c);
-      clearTimeout(controlsTimer.current);
-      if (!showControls) {
-        controlsTimer.current = setTimeout(() => setShowControls(false), 3000);
-      }
+  const onDocumentLoadSuccess = ({ numPages }) => {
+    setNumPages(numPages);
+    setLoading(false);
+    // Update total pages if not set
+    if (!book.pages || book.pages === 0) {
+      onUpdateProgress(book.id, book.currentPage || 0);
     }
   };
 
-  // Sample page content for demo
-  const sampleParagraphs = [
-    `${book.title} — Page ${currentPage} of ${totalPages}`,
-    `This is a demonstration of the reading experience in CleanEbook. In a production environment, this would render the actual PDF content using react-pdf or pdf.js.`,
-    `The reader supports smooth page navigation, adjustable font size, and progress tracking. Tap the left side to go back, right side to go forward, or the center to toggle controls.`,
-    `Reading progress is automatically saved. You can return to your library at any time and continue from where you left off.`,
-    `"${book.description || 'A great reading experience awaits you.'}"`,
-    `— ${book.author}`,
-  ];
+  const handleTap = (e) => {
+    // Don't navigate if user is selecting text
+    if (window.getSelection().toString()) return;
+    const x = e.clientX / window.innerWidth;
+    if (x < 0.2) goTo(currentPage - 1);
+    else if (x > 0.8) goTo(currentPage + 1);
+    else {
+      setShowControls(c => !c);
+    }
+  };
+
+  const progress = numPages ? Math.round((currentPage / numPages) * 100) : 0;
 
   return (
     <div className={styles.page}>
@@ -50,59 +71,72 @@ export function Reader({ book, onBack, onUpdateProgress }) {
           <ArrowLeft size={20} />
         </button>
         <div className={styles.pageInfo}>
-          <span className={styles.pageNum}>{currentPage} / {totalPages}</span>
+          <span className={styles.bookTitle}>{book.title}</span>
           <div className={styles.topProgress}>
             <div className={styles.topProgressFill} style={{ width: `${progress}%` }} />
           </div>
         </div>
         <div className={styles.fontControls}>
-          <button onClick={() => setFontSize(f => Math.max(12, f - 2))} aria-label="Decrease font">
+          <button onClick={() => setScale(s => Math.max(0.6, +(s - 0.1).toFixed(1)))} aria-label="Zoom out">
             <Minus size={16} />
           </button>
-          <span>{fontSize}</span>
-          <button onClick={() => setFontSize(f => Math.min(24, f + 2))} aria-label="Increase font">
+          <span>{Math.round(scale * 100)}%</span>
+          <button onClick={() => setScale(s => Math.min(2.0, +(s + 0.1).toFixed(1)))} aria-label="Zoom in">
             <Plus size={16} />
           </button>
         </div>
       </div>
 
-      {/* Reading area */}
-      <div className={styles.readerArea} onClick={handleTap}>
-        <div className={styles.pageContent} style={{ fontSize: `${fontSize}px` }}>
-          {sampleParagraphs.map((p, i) => (
-            <p key={i} className={i === 0 ? styles.pageHeader : i === 4 ? styles.quote : ''}>{p}</p>
-          ))}
-        </div>
+      {/* PDF Area */}
+      <div className={styles.readerArea} onClick={handleTap} ref={containerRef}>
+        {loading && (
+          <div className={styles.loadingState}>
+            <Loader size={32} className={styles.spinner} />
+            <p>Loading PDF...</p>
+          </div>
+        )}
 
-        {/* Tap zones hint */}
-        <div className={styles.tapHints}>
-          <div className={styles.tapZone}><ChevronLeft size={20} /></div>
-          <div className={styles.tapZoneCenter} />
-          <div className={styles.tapZone}><ChevronRight size={20} /></div>
-        </div>
+        {book.fileData ? (
+          <Document
+            file={book.fileData}
+            onLoadSuccess={onDocumentLoadSuccess}
+            onLoadError={(e) => { console.error(e); setLoading(false); }}
+            loading=""
+            className={styles.pdfDoc}
+          >
+            <Page
+              pageNumber={currentPage}
+              width={containerWidth * scale}
+              renderTextLayer={true}
+              renderAnnotationLayer={false}
+              loading=""
+            />
+          </Document>
+        ) : (
+          <div className={styles.noFile}>
+            <p>PDF file not found.</p>
+            <p>Please re-upload the book.</p>
+          </div>
+        )}
       </div>
 
       {/* Bottom controls */}
       <div className={`${styles.bottomBar} ${showControls ? styles.visible : ''}`}>
         <button className={styles.pageBtn} onClick={() => goTo(currentPage - 1)} disabled={currentPage <= 1}>
           <ChevronLeft size={20} />
-          Prev
         </button>
 
         <div className={styles.sliderWrap}>
-          <input
-            type="range"
-            min={1}
-            max={totalPages}
-            value={currentPage}
-            onChange={e => goTo(Number(e.target.value))}
-            className={styles.slider}
-          />
+          <span className={styles.pageNum}>{currentPage} / {numPages || '?'}</span>
+          {numPages && (
+            <input type="range" min={1} max={numPages} value={currentPage}
+              onChange={e => goTo(Number(e.target.value))}
+              className={styles.slider} />
+          )}
           <span className={styles.progressPct}>{progress}%</span>
         </div>
 
-        <button className={styles.pageBtn} onClick={() => goTo(currentPage + 1)} disabled={currentPage >= totalPages}>
-          Next
+        <button className={styles.pageBtn} onClick={() => goTo(currentPage + 1)} disabled={!numPages || currentPage >= numPages}>
           <ChevronRight size={20} />
         </button>
       </div>

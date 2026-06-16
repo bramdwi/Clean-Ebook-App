@@ -1,34 +1,41 @@
 import { useState, useRef } from 'react';
 import { Upload, FileText, X, Check, ArrowLeft } from 'lucide-react';
 import styles from './UploadPage.module.css';
-import { CATEGORIES } from '../data/books';
+
+const CATEGORIES = ['Design', 'Business', 'Tech', 'Fiction', 'Science', 'History', 'Self-Help', 'Other'];
+const COLORS = ['#8B4513','#2C3E50','#1B4332','#4A1942','#333333','#7B2D8B','#1a3a5c','#5c3317'];
+const ACCENTS = ['#D2691E','#3498DB','#52B788','#C77DFF','#E63946','#F4A261','#4fc3f7','#f0a500'];
 
 export function UploadPage({ onAdd, onBack }) {
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState(null);
-  const [form, setForm] = useState({ title: '', author: '', category: 'Design' });
+  const [fileData, setFileData] = useState(null); // base64
+  const [form, setForm] = useState({ title: '', author: '', category: 'Other' });
   const [done, setDone] = useState(false);
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef();
 
   const handleFile = (f) => {
-    if (!f) return;
+    if (!f || f.type !== 'application/pdf') return;
     setFile(f);
-    // Auto-fill title from filename
-    const name = f.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+    const name = f.name.replace(/\.pdf$/i, '').replace(/[-_]/g, ' ');
     setForm(prev => ({ ...prev, title: name }));
+
+    // Read as base64 to store in localStorage
+    const reader = new FileReader();
+    reader.onload = (e) => setFileData(e.target.result);
+    reader.readAsDataURL(f);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setDragging(false);
-    const f = e.dataTransfer.files[0];
-    if (f?.type === 'application/pdf') handleFile(f);
+    handleFile(e.dataTransfer.files[0]);
   };
 
-  const handleSubmit = () => {
-    if (!form.title) return;
-    const COLORS = ['#8B4513','#2C3E50','#1B4332','#4A1942','#333333','#7B2D8B'];
-    const ACCENTS = ['#D2691E','#3498DB','#52B788','#C77DFF','#E63946','#F4A261'];
+  const handleSubmit = async () => {
+    if (!form.title || !fileData) return;
+    setLoading(true);
     const idx = Math.floor(Math.random() * COLORS.length);
     onAdd({
       id: Date.now().toString(),
@@ -46,9 +53,11 @@ export function UploadPage({ onAdd, onBack }) {
       description: '',
       tags: [form.category],
       favorite: false,
+      fileData, // base64 PDF
     });
+    setLoading(false);
     setDone(true);
-    setTimeout(() => { setDone(false); onBack(); }, 1500);
+    setTimeout(() => { setDone(false); onBack(); }, 1200);
   };
 
   return (
@@ -60,7 +69,6 @@ export function UploadPage({ onAdd, onBack }) {
       </div>
 
       <div className={styles.content}>
-        {/* Drop zone */}
         <div
           className={`${styles.dropzone} ${dragging ? styles.dragging : ''} ${file ? styles.hasFile : ''}`}
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
@@ -68,7 +76,8 @@ export function UploadPage({ onAdd, onBack }) {
           onDrop={handleDrop}
           onClick={() => !file && inputRef.current.click()}
         >
-          <input ref={inputRef} type="file" accept=".pdf" hidden onChange={e => handleFile(e.target.files[0])} />
+          <input ref={inputRef} type="file" accept=".pdf,application/pdf" hidden
+            onChange={e => handleFile(e.target.files[0])} />
           {file ? (
             <div className={styles.fileInfo}>
               <FileText size={32} className={styles.fileIcon} />
@@ -76,7 +85,8 @@ export function UploadPage({ onAdd, onBack }) {
                 <p className={styles.fileName}>{file.name}</p>
                 <p className={styles.fileSize}>{(file.size / 1024 / 1024).toFixed(1)} MB</p>
               </div>
-              <button className={styles.removeFile} onClick={(e) => { e.stopPropagation(); setFile(null); }}>
+              <button className={styles.removeFile}
+                onClick={(e) => { e.stopPropagation(); setFile(null); setFileData(null); }}>
                 <X size={16} />
               </button>
             </div>
@@ -89,36 +99,22 @@ export function UploadPage({ onAdd, onBack }) {
           )}
         </div>
 
-        {/* Form */}
         <div className={styles.form}>
           <div className={styles.field}>
             <label className={styles.label}>Title *</label>
-            <input
-              className={styles.input}
-              placeholder="Book title"
-              value={form.title}
-              onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-            />
+            <input className={styles.input} placeholder="Book title"
+              value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} />
           </div>
           <div className={styles.field}>
             <label className={styles.label}>Author</label>
-            <input
-              className={styles.input}
-              placeholder="Author name"
-              value={form.author}
-              onChange={e => setForm(p => ({ ...p, author: e.target.value }))}
-            />
+            <input className={styles.input} placeholder="Author name"
+              value={form.author} onChange={e => setForm(p => ({ ...p, author: e.target.value }))} />
           </div>
           <div className={styles.field}>
             <label className={styles.label}>Category</label>
-            <select
-              className={styles.select}
-              value={form.category}
-              onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
-            >
-              {CATEGORIES.filter(c => c !== 'All').map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
+            <select className={styles.select} value={form.category}
+              onChange={e => setForm(p => ({ ...p, category: e.target.value }))}>
+              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
         </div>
@@ -126,10 +122,16 @@ export function UploadPage({ onAdd, onBack }) {
         <button
           className={`${styles.addBtn} ${done ? styles.done : ''}`}
           onClick={handleSubmit}
-          disabled={!form.title}
+          disabled={!form.title || !fileData || loading}
         >
-          {done ? <><Check size={20} /> Added!</> : <><Upload size={20} /> Add to Library</>}
+          {done ? <><Check size={20} /> Added!</> :
+           loading ? 'Processing...' :
+           <><Upload size={20} /> Add to Library</>}
         </button>
+
+        {!fileData && (
+          <p className={styles.hint}>* Please select a PDF file first</p>
+        )}
       </div>
     </div>
   );

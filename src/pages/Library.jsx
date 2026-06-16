@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Search, SlidersHorizontal, Grid3X3, List, Sun, Moon, BookOpen } from 'lucide-react';
 import { BookCover } from '../components/BookCover';
-import { CATEGORIES } from '../data/books';
+
 import styles from './Library.module.css';
 
-export function Library({ books, filteredBooks, searchQuery, setSearchQuery,
+export function Library({ books, filteredBooks, searchQuery, setSearchQuery, CATEGORIES,
   activeCategory, setActiveCategory, sortBy, setSortBy,
   onSelectBook, toggleFavorite, theme, toggleTheme, stats }) {
 

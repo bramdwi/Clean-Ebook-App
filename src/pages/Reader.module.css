@@ -1,13 +1,11 @@
 .page {
   min-height: 100dvh;
-  background: var(--paper);
+  background: #1a1612;
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: hidden;
 }
 
-/* Top bar */
 .topBar {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -16,132 +14,99 @@
   align-items: center;
   gap: 12px;
   padding: 48px 16px 14px;
-  background: linear-gradient(to bottom, var(--paper) 80%, transparent);
+  background: linear-gradient(to bottom, rgba(26,22,18,0.98) 80%, transparent);
   transform: translateY(-100%);
   opacity: 0;
   transition: all 300ms ease;
 }
 
-.topBar.visible {
-  transform: translateY(0);
-  opacity: 1;
-}
+.topBar.visible { transform: translateY(0); opacity: 1; }
 
 .backBtn {
   width: 38px; height: 38px;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
-  color: var(--ink-700);
-  background: var(--ink-100);
+  color: #e8ddd0;
+  background: rgba(255,255,255,0.1);
   flex-shrink: 0;
-  transition: background var(--transition);
+  transition: background 200ms;
 }
-.backBtn:hover { background: var(--ink-200); }
+.backBtn:hover { background: rgba(255,255,255,0.2); }
 
-.pageInfo {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+.pageInfo { flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 
-.pageNum {
-  font-size: 0.72rem;
-  color: var(--ink-500);
-  font-weight: 600;
-}
-
-.topProgress {
-  height: 2px;
-  background: var(--ink-200);
-  border-radius: 2px;
+.bookTitle {
+  font-size: 0.78rem;
+  color: rgba(232,221,208,0.7);
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.topProgressFill {
-  height: 100%;
-  background: var(--accent);
-  border-radius: 2px;
-  transition: width 400ms ease;
-}
+.topProgress { height: 2px; background: rgba(255,255,255,0.15); border-radius: 2px; overflow: hidden; }
+.topProgressFill { height: 100%; background: #c0392b; border-radius: 2px; transition: width 400ms ease; }
 
 .fontControls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--ink-100);
-  border-radius: var(--radius-sm);
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
   padding: 4px 8px;
+  flex-shrink: 0;
 }
-
 .fontControls button {
   display: flex; align-items: center; justify-content: center;
   width: 28px; height: 28px;
   border-radius: 4px;
-  color: var(--ink-600);
-  transition: background var(--transition);
+  color: #e8ddd0;
+  transition: background 200ms;
 }
-.fontControls button:hover { background: var(--ink-200); }
-.fontControls span { font-size: 0.78rem; font-weight: 600; color: var(--ink-700); min-width: 18px; text-align: center; }
+.fontControls button:hover { background: rgba(255,255,255,0.15); }
+.fontControls span { font-size: 0.72rem; font-weight: 600; color: #e8ddd0; min-width: 32px; text-align: center; }
 
 /* Reader Area */
 .readerArea {
   flex: 1;
-  padding: 100px 28px 120px;
-  cursor: default;
-  position: relative;
-  user-select: text;
-}
-
-.pageContent {
-  max-width: 520px;
-  margin: 0 auto;
-  font-family: var(--font-display);
-  color: var(--ink-900);
-  line-height: 1.85;
+  padding-top: 80px;
+  padding-bottom: 80px;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 1.2em;
-}
-
-.pageHeader {
-  font-size: 0.78em !important;
-  color: var(--ink-400) !important;
-  text-align: center;
-  font-family: var(--font-body) !important;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding-bottom: 1em;
-  border-bottom: 1px solid var(--paper-border);
-}
-
-.quote {
-  font-style: italic;
-  color: var(--ink-600) !important;
-  padding-left: 1.2em;
-  border-left: 3px solid var(--accent);
-}
-
-/* Tap zones */
-.tapHints {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  pointer-events: none;
-  opacity: 0;
-}
-
-.tapZone {
-  width: 25%;
-  display: flex;
   align-items: center;
-  justify-content: center;
-  color: var(--ink-300);
+  -webkit-overflow-scrolling: touch;
 }
 
-.tapZoneCenter { flex: 1; }
+.pdfDoc { display: flex; flex-direction: column; align-items: center; }
 
-/* Bottom bar */
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 80px 0;
+  color: rgba(232,221,208,0.5);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.noFile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 80px 24px;
+  color: rgba(232,221,208,0.4);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* Bottom Bar */
 .bottomBar {
   position: fixed;
   bottom: 0; left: 0; right: 0;
@@ -150,52 +115,30 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px env(safe-area-inset-bottom, 16px);
-  background: linear-gradient(to top, var(--paper) 80%, transparent);
+  background: linear-gradient(to top, rgba(26,22,18,0.98) 80%, transparent);
   transform: translateY(100%);
   opacity: 0;
   transition: all 300ms ease;
 }
 
-.bottomBar.visible {
-  transform: translateY(0);
-  opacity: 1;
-}
+.bottomBar.visible { transform: translateY(0); opacity: 1; }
 
 .pageBtn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  background: var(--ink-100);
-  color: var(--ink-700);
-  font-size: 0.82rem;
-  font-weight: 600;
-  font-family: var(--font-body);
-  transition: all var(--transition);
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  color: #e8ddd0;
+  transition: background 200ms;
   flex-shrink: 0;
 }
+.pageBtn:hover:not(:disabled) { background: rgba(255,255,255,0.2); }
+.pageBtn:disabled { opacity: 0.3; }
 
-.pageBtn:hover:not(:disabled) { background: var(--ink-200); }
-.pageBtn:disabled { opacity: 0.35; }
+.sliderWrap { flex: 1; display: flex; flex-direction: column; gap: 4px; align-items: center; }
 
-.sliderWrap {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-}
+.pageNum { font-size: 0.72rem; color: rgba(232,221,208,0.6); font-weight: 600; }
 
-.slider {
-  width: 100%;
-  height: 4px;
-  accent-color: var(--accent);
-  cursor: pointer;
-}
+.slider { width: 100%; height: 4px; accent-color: #c0392b; cursor: pointer; }
 
-.progressPct {
-  font-size: 0.68rem;
-  color: var(--ink-400);
-  font-weight: 600;
-}
+.progressPct { font-size: 0.65rem; color: rgba(232,221,208,0.4); }

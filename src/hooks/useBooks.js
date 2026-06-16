@@ -1,11 +1,39 @@
-import { useState, useCallback } from 'react';
-import { SAMPLE_BOOKS } from '../data/books';
+import { useState, useCallback, useEffect } from 'react';
+
+const STORAGE_KEY = 'cleanebook-library';
+
+function loadBooks() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const books = JSON.parse(raw);
+    // fileData is stored as base64, restore it
+    return books;
+  } catch {
+    return [];
+  }
+}
+
+function saveBooks(books) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+  } catch (e) {
+    console.error('Failed to save books:', e);
+  }
+}
 
 export function useBooks() {
-  const [books, setBooks] = useState(SAMPLE_BOOKS);
+  const [books, setBooks] = useState(() => loadBooks());
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [sortBy, setSortBy] = useState('recent');
+
+  // Persist to localStorage on every change
+  useEffect(() => {
+    saveBooks(books);
+  }, [books]);
+
+  const CATEGORIES = ['All', ...Array.from(new Set(books.map(b => b.category))).filter(Boolean)];
 
   const filteredBooks = books
     .filter(book => {
@@ -13,7 +41,7 @@ export function useBooks() {
       const matchesSearch = !searchQuery ||
         book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
+        (book.tags || []).some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchesCategory && matchesSearch;
     })
     .sort((a, b) => {
@@ -42,12 +70,13 @@ export function useBooks() {
   const getBook = useCallback((id) => books.find(b => b.id === id), [books]);
 
   const readingBooks = books.filter(b => b.currentPage > 0 && b.currentPage < b.pages);
-  const finishedBooks = books.filter(b => b.currentPage >= b.pages && b.pages > 0);
+  const finishedBooks = books.filter(b => b.pages > 0 && b.currentPage >= b.pages);
   const favoriteBooks = books.filter(b => b.favorite);
 
   return {
     books, filteredBooks, searchQuery, setSearchQuery,
     activeCategory, setActiveCategory, sortBy, setSortBy,
+    CATEGORIES,
     toggleFavorite, updateProgress, addBook, removeBook, getBook,
     stats: {
       total: books.length,
