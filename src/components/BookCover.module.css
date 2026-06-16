@@ -1,0 +1,135 @@
+.cover {
+  position: relative;
+  border-radius: 3px 6px 6px 3px;
+  box-shadow: var(--shadow-book);
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.cover:hover {
+  transform: translateY(-3px) rotate(-1deg);
+  box-shadow: 6px 8px 0px rgba(26,18,9,0.18), 12px 14px 0px rgba(26,18,9,0.08);
+}
+
+/* Sizes */
+.sm { width: 64px; height: 88px; }
+.md { width: 100px; height: 140px; }
+.lg { width: 140px; height: 196px; }
+.xl { width: 180px; height: 252px; }
+
+/* Spine */
+.spine {
+  width: 10px;
+  background: color-mix(in srgb, var(--cover-color) 60%, #000 40%);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.spine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(0,0,0,0.3), rgba(255,255,255,0.05));
+}
+
+/* Face */
+.face {
+  flex: 1;
+  background: var(--cover-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 8px 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative stripe */
+.decoration {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    transparent 40%,
+    var(--cover-accent) 40%,
+    var(--cover-accent) 60%,
+    transparent 60%
+  );
+  opacity: 0.3;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  position: relative;
+  z-index: 1;
+}
+
+.coverTitle {
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.95);
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.coverAuthor {
+  font-family: var(--font-body);
+  font-size: 0.48rem;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.coverCategory {
+  font-family: var(--font-body);
+  font-size: 0.42rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--cover-accent);
+  position: relative;
+  z-index: 1;
+}
+
+/* Sizes — type scale adjustments */
+.lg .coverTitle { font-size: 0.75rem; }
+.lg .coverAuthor { font-size: 0.6rem; }
+.lg .coverCategory { font-size: 0.52rem; }
+.xl .coverTitle { font-size: 0.9rem; }
+.xl .coverAuthor { font-size: 0.7rem; }
+.xl .coverCategory { font-size: 0.58rem; }
+.sm .coverTitle { font-size: 0.5rem; -webkit-line-clamp: 3; }
+.sm .coverAuthor { display: none; }
+.sm .coverCategory { display: none; }
+.sm .face { padding: 5px 5px 4px; }
+
+/* Progress */
+.progressBar {
+  position: absolute;
+  bottom: 0;
+  left: 10px;
+  right: 0;
+  height: 3px;
+  background: rgba(255,255,255,0.15);
+}
+
+.progressFill {
+  height: 100%;
+  background: rgba(255,255,255,0.7);
+  transition: width 600ms ease;
+}
