@@ -6,7 +6,9 @@ import 'react-pdf/dist/Page/TextLayer.css';
 import styles from './Reader.module.css';
 import { loadPDF } from '../utils/pdfStorage';
 
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+// Use bundled worker to avoid CDN CORS issues
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 export function Reader({ book, onBack, onUpdateProgress }) {
   const [numPages, setNumPages] = useState(null);
