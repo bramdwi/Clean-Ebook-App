@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { deletePDF } from '../utils/pdfStorage';
 
 const STORAGE_KEY = 'cleanebook-library';
 
@@ -6,17 +7,15 @@ function loadBooks() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
-    const books = JSON.parse(raw);
-    // fileData is stored as base64, restore it
-    return books;
-  } catch {
-    return [];
-  }
+    return JSON.parse(raw);
+  } catch { return []; }
 }
 
 function saveBooks(books) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+    // Never save fileData to localStorage — only metadata
+    const meta = books.map(({ fileData, ...rest }) => rest);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(meta));
   } catch (e) {
     console.error('Failed to save books:', e);
   }
@@ -28,10 +27,7 @@ export function useBooks() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [sortBy, setSortBy] = useState('recent');
 
-  // Persist to localStorage on every change
-  useEffect(() => {
-    saveBooks(books);
-  }, [books]);
+  useEffect(() => { saveBooks(books); }, [books]);
 
   const CATEGORIES = ['All', ...Array.from(new Set(books.map(b => b.category))).filter(Boolean)];
 
@@ -64,6 +60,7 @@ export function useBooks() {
   }, []);
 
   const removeBook = useCallback((id) => {
+    deletePDF(id); // Clean up IndexedDB too
     setBooks(prev => prev.filter(b => b.id !== id));
   }, []);
 

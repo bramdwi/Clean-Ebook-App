@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Upload, FileText, X, Check, ArrowLeft } from 'lucide-react';
 import styles from './UploadPage.module.css';
+import { savePDF } from '../utils/pdfStorage';
 
 const CATEGORIES = ['Design', 'Business', 'Tech', 'Fiction', 'Science', 'History', 'Self-Help', 'Other'];
 const COLORS = ['#8B4513','#2C3E50','#1B4332','#4A1942','#333333','#7B2D8B','#1a3a5c','#5c3317'];
@@ -9,22 +10,21 @@ const ACCENTS = ['#D2691E','#3498DB','#52B788','#C77DFF','#E63946','#F4A261','#4
 export function UploadPage({ onAdd, onBack }) {
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState(null);
-  const [fileData, setFileData] = useState(null); // base64
   const [form, setForm] = useState({ title: '', author: '', category: 'Other' });
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const inputRef = useRef();
 
   const handleFile = (f) => {
-    if (!f || f.type !== 'application/pdf') return;
+    if (!f || f.type !== 'application/pdf') {
+      setError('Please select a valid PDF file.');
+      return;
+    }
+    setError('');
     setFile(f);
     const name = f.name.replace(/\.pdf$/i, '').replace(/[-_]/g, ' ');
     setForm(prev => ({ ...prev, title: name }));
-
-    // Read as base64 to store in localStorage
-    const reader = new FileReader();
-    reader.onload = (e) => setFileData(e.target.result);
-    reader.readAsDataURL(f);
   };
 
   const handleDrop = (e) => {
@@ -34,30 +34,49 @@ export function UploadPage({ onAdd, onBack }) {
   };
 
   const handleSubmit = async () => {
-    if (!form.title || !fileData) return;
+    if (!form.title || !file) return;
     setLoading(true);
-    const idx = Math.floor(Math.random() * COLORS.length);
-    onAdd({
-      id: Date.now().toString(),
-      title: form.title,
-      author: form.author || 'Unknown Author',
-      category: form.category,
-      cover: null,
-      coverColor: COLORS[idx],
-      coverAccent: ACCENTS[idx],
-      pages: 0,
-      currentPage: 0,
-      addedAt: new Date().toISOString().split('T')[0],
-      fileSize: file ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : '0 MB',
-      format: 'PDF',
-      description: '',
-      tags: [form.category],
-      favorite: false,
-      fileData, // base64 PDF
-    });
-    setLoading(false);
-    setDone(true);
-    setTimeout(() => { setDone(false); onBack(); }, 1200);
+    setError('');
+
+    try {
+      const bookId = Date.now().toString();
+
+      // Read PDF as ArrayBuffer and store in IndexedDB
+      const arrayBuffer = await file.arrayBuffer();
+      const saved = await savePDF(bookId, arrayBuffer);
+
+      if (!saved) {
+        setError('Failed to save PDF. Storage may be full.');
+        setLoading(false);
+        return;
+      }
+
+      const idx = Math.floor(Math.random() * COLORS.length);
+      onAdd({
+        id: bookId,
+        title: form.title,
+        author: form.author || 'Unknown Author',
+        category: form.category,
+        cover: null,
+        coverColor: COLORS[idx],
+        coverAccent: ACCENTS[idx],
+        pages: 0,
+        currentPage: 0,
+        addedAt: new Date().toISOString().split('T')[0],
+        fileSize: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
+        format: 'PDF',
+        description: '',
+        tags: [form.category],
+        favorite: false,
+        // No fileData here — stored separately in IndexedDB
+      });
+
+      setDone(true);
+      setTimeout(() => { setDone(false); onBack(); }, 1200);
+    } catch (e) {
+      setError('Something went wrong. Please try again.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -86,7 +105,7 @@ export function UploadPage({ onAdd, onBack }) {
                 <p className={styles.fileSize}>{(file.size / 1024 / 1024).toFixed(1)} MB</p>
               </div>
               <button className={styles.removeFile}
-                onClick={(e) => { e.stopPropagation(); setFile(null); setFileData(null); }}>
+                onClick={(e) => { e.stopPropagation(); setFile(null); setError(''); }}>
                 <X size={16} />
               </button>
             </div>
@@ -98,6 +117,8 @@ export function UploadPage({ onAdd, onBack }) {
             </>
           )}
         </div>
+
+        {error && <p className={styles.error}>{error}</p>}
 
         <div className={styles.form}>
           <div className={styles.field}>
@@ -122,16 +143,14 @@ export function UploadPage({ onAdd, onBack }) {
         <button
           className={`${styles.addBtn} ${done ? styles.done : ''}`}
           onClick={handleSubmit}
-          disabled={!form.title || !fileData || loading}
+          disabled={!form.title || !file || loading}
         >
           {done ? <><Check size={20} /> Added!</> :
-           loading ? 'Processing...' :
+           loading ? 'Saving PDF...' :
            <><Upload size={20} /> Add to Library</>}
         </button>
 
-        {!fileData && (
-          <p className={styles.hint}>* Please select a PDF file first</p>
-        )}
+        {!file && <p className={styles.hint}>Select a PDF file to continue</p>}
       </div>
     </div>
   );

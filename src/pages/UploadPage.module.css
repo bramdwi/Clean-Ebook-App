@@ -159,3 +159,4 @@
   box-shadow: 0 4px 16px rgba(39,174,96,0.3);
 }
 .hint { font-size: 0.75rem; color: var(--ink-400); text-align: center; }
+.error { font-size: 0.8rem; color: #e74c3c; text-align: center; padding: 4px 0; }

@@ -142,3 +142,15 @@
 .slider { width: 100%; height: 4px; accent-color: #c0392b; cursor: pointer; }
 
 .progressPct { font-size: 0.65rem; color: rgba(232,221,208,0.4); }
+
+.reuploadBtn {
+  margin-top: 12px;
+  padding: 10px 24px;
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.1);
+  color: rgba(232,221,208,0.8);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  transition: background 200ms;
+}
+.reuploadBtn:hover { background: rgba(255,255,255,0.2); }
