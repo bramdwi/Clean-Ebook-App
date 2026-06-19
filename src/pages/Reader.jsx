@@ -128,7 +128,7 @@ export function Reader({ book, onBack, onUpdateProgress }) {
 
         {!isLoadingFile && pdfData && (
           <Document
-            file={{ data: pdfData }}
+            file={{ data: pdfData.slice(0) }}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={(e) => setLoadError('Error rendering PDF: ' + e.message)}
             loading={
