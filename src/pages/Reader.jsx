@@ -7,13 +7,12 @@ export function Reader({ book, onBack }) {
   const [fontSize, setFontSize] = useState(1.05); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
 
-  // --- 1. MESIN PEMISAH KALIMAT CERDAS (SENTENCE-BOUNDARY PAGINATOR) ---
+  // --- 1. MESIN PEMISAH KALIMAT CERDAS ---
   const { pages, toc } = useMemo(() => {
     const lines = bookContent.split('\n');
     const tocItems = [];
     const cleanParagraphs = [];
 
-    // Pisahkan Daftar Isi dari teks
     lines.forEach(line => {
       if (line.includes('|') && /\d+$/.test(line.trim())) {
         tocItems.push(line);
@@ -28,7 +27,6 @@ export function Reader({ book, onBack }) {
     const MAX_CHAR_PER_PAGE = 850; 
 
     cleanParagraphs.forEach(para => {
-      // PERBAIKAN NO 7: Bersihkan spasi ganda atau tab berlebih menjadi satu spasi tunggal
       const text = para.replace(/\s+/g, ' ').trim();
       if (!text) return;
 
@@ -40,7 +38,6 @@ export function Reader({ book, onBack }) {
         currentSentenceChunk.push(word);
         currentSentenceLen += word.length + 1;
 
-        // PERBAIKAN NO 9: Pastikan angka dengan titik (misal "9.") tidak dianggap akhir kalimat
         const isNumberList = /^\d+\.$/.test(word) || /^\*\*\d+\.\*\*$/.test(word);
         const isEndOfSentence = (/[.!?]$/.test(word) || /[.!?]\*\*$/.test(word) || /[.!?]"$/.test(word)) && !isNumberList;
 
@@ -94,15 +91,34 @@ export function Reader({ book, onBack }) {
   const increaseFont = () => setFontSize(prev => Math.min(prev + 0.1, 1.6));
   const decreaseFont = () => setFontSize(prev => Math.max(prev - 0.1, 0.85));
 
+  // --- 2. LOGIKA DAFTAR ISI PINTAR (FUZZY FALLBACK MATCHING) ---
   const handleTocClick = (tocEntry) => {
-    const cleanTitle = tocEntry.split('|')[0].replace(/\./g, '').trim().toLowerCase();
+    const titlePart = tocEntry.split('|')[0].replace(/\./g, '').trim().toLowerCase();
     
     let foundIndex = -1;
+
+    // Langkah A: Cari yang 100% Persis Dulu
     for (let i = 0; i < pages.length; i++) {
       const pageText = pages[i].map(item => item.text).join(' ').toLowerCase();
-      if (pageText.includes(cleanTitle)) {
+      if (pageText.includes(titlePart)) {
          foundIndex = i;
          break;
+      }
+    }
+
+    // Langkah B: Fallback Pintar (Jika "Adab Usuli" tidak ketemu, cari kata "Usuli")
+    if (foundIndex === -1) {
+      const words = titlePart.split(' ').filter(w => w.length > 3); // Ambil kata yang signifikan
+      const coreKeyword = words[words.length - 1]; // Ambil kata kunci terakhir (misal: 'usuli')
+      
+      if (coreKeyword) {
+        for (let i = 0; i < pages.length; i++) {
+          const pageText = pages[i].map(item => item.text).join(' ').toLowerCase();
+          if (pageText.includes(coreKeyword)) {
+             foundIndex = i;
+             break;
+          }
+        }
       }
     }
 
@@ -110,7 +126,7 @@ export function Reader({ book, onBack }) {
       setCurrentPage(foundIndex);
       setIsSidebarOpen(false); 
     } else {
-      alert(`Bagian "${tocEntry.split('|')[0].trim()}" belum tersedia di teks saat ini.`);
+      alert(`Bagian "${tocEntry.split('|')[0].trim()}" belum dapat ditemukan di dalam lembaran halaman.`);
     }
   };
 
@@ -158,6 +174,8 @@ export function Reader({ book, onBack }) {
 
   return (
     <div style={styles.page}>
+      
+      {/* --- SIDEBAR DAFTAR ISI --- */}
       {isSidebarOpen && (
         <div style={styles.sidebarOverlay} onClick={() => setIsSidebarOpen(false)}>
           <div style={styles.sidebar} onClick={e => e.stopPropagation()}>
@@ -181,6 +199,7 @@ export function Reader({ book, onBack }) {
         </div>
       )}
 
+      {/* --- BAR ATAS --- */}
       <div style={styles.topBar}>
         <div style={{display: 'flex', gap: '12px', alignItems: 'center'}}>
            <button onClick={onBack} style={styles.backButton}>← Beranda</button>
@@ -197,12 +216,14 @@ export function Reader({ book, onBack }) {
         </div>
       </div>
 
+      {/* --- AREA TEKS --- */}
       <div style={styles.readerContainer}>
         <div style={styles.paper}>
           {renderPageContent(pages[currentPage])}
         </div>
       </div>
 
+      {/* --- NAVIGASI BAWAH --- */}
       <div style={styles.bottomBar}>
         <button 
           disabled={currentPage === 0} 
