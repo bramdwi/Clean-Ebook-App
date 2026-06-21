@@ -161,4 +161,4 @@ Maksudnya supaya kita bertanggung jawab keseluruh alam seperti yang dikehendaki 
  10. Menjaga kebersihan masjid, dengan membersihkannya ALLAH SWT akan bersihkan dari sakit rohani seperti Hasud, Dengki, Adu domba, Iri dll.
 
 *(Bersambung...)*
-\`;
+`;
