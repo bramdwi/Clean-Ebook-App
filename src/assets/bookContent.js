@@ -12,7 +12,7 @@ Adab Bayan | 48
 Adab Taskil | 52
 Adab Usuli | 53
 Adab Majlis | 54
-Adab Khususi (Ziarah) Ulama. | 56
+Adab Khususi (Ziarah) Ulama | 56
 Adab Amir dan Makmur | 59
 Mudzakaroh Kesatuan Hari | 61
 Mudzakaroh Memelihara Badan | 62
@@ -301,7 +301,7 @@ Setelah selesai bayan, puncaknya adalah taskil, supaya bisa keluar dijalan ALLAH
  8. Apabila ada nama yang kontan maka dikumpulkan ditempat lain, di ikrom dan lebih utama di tafakut keuangannya dan di usuli.
  9. Orang-orang yang sudah siap namanya jangan dibiarkan dan harus diperhatikan.
  10. Apabila petugas taskil bilang supaya ikhtilat, maka semua teman2 supaya ikhtilat kepada majma' (majelis) yang hadir.
-**Mudzakaroh (no.61) mengenai Usuli.**
+**Mudzakaroh (no.6) mengenai Usuli.**
 **Maksud:**
 Supaya nama2 yang sudah dicatat tidak lepas begitu saja.
 **Fadhilahnya :**
