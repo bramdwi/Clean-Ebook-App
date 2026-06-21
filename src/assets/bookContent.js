@@ -16,8 +16,8 @@ Adab Khususi (Ziarah) Ulama. | 56
 Adab Amir dan Makmur | 59
 Mudzakaroh Kesatuan Hari | 61
 Mudzakaroh Memelihara Badan | 62
-Adab Perjalanan........... | 64
-Mudzakaroh Mengenai Wanita.... | 64
+Adab Perjalanan | 64
+Mudzakaroh Mengenai Wanita | 64
 Adab Khitmad | 71
 Adab Makan... | 75
 Adab Tidur | 78
@@ -159,6 +159,14 @@ Maksudnya supaya kita bertanggung jawab keseluruh alam seperti yang dikehendaki 
  8. Makan minum supaya diluar masjid (serambi). Apabila di masjid tersebut tidak ada serambi/ kamar maka dalam keadaan darurat boleh didalam masjid asal dengan adab.
  9. Didalam masjid kalau mau baca qira'at dengan suara, harus minta izin Imam masjid. Apabila jadi makmum dengan mengeraskan suara hukumnya makruh.
  10. Menjaga kebersihan masjid, dengan membersihkannya ALLAH SWT akan bersihkan dari sakit rohani seperti Hasud, Dengki, Adu domba, Iri dll.
+11. Jangan membawa dagangan kedalam masjid atau melakukan jual beli.
+ 12. Untuk para jemaah, sebelum Qomat, wudhu dan istinja harus sudah selesai sekurang-kurangnya ½ jam sebelumnya.
+ 13. Jangan mengumumkan barang hilang di masjid, harus diluar masjid. Kalau tidak, Malaikat akan melaknatnya.
+ 14. Tidur dalam masjid harus pakai alas yang tebal.
+ 15. Apabila junub di masjid cepat keluar dan mandi.
+ 16. Apabila masuk masjid ada wudhu dan sholat Tahiyatul Masjid 2 roka'at.
+ 17. Untuk para jemaah Tabligh, barang2 ditutup dengan rapi.
+ 18. Barang2 yang berharga harus dijaga jangan sampai karena kelalaian kita, orang lain berbuat dosa (mencuri).
+ 19. Jangan menanggalkan baju khususnya waktu tidur, atau menjemur/menggantung pakaian didinding, tembok masjid atau jendela.
 
-*(Bersambung...)*
 `;
