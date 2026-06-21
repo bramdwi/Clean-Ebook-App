@@ -237,7 +237,7 @@ Maksud/tujuan: Sebelum duduk didalam musyawaroh berfikir sejenak, kenapa kita du
  21. Semua fadhilah dibaca didalam ta'lim.
  22. Suara disesuaikan dengan yang hadir (majma')
  23. Dibaca dengan perlahan-lahan supaya semua paham.
- 24. Apabila bukan `alim jangan membaca ayat Al-Qur'an atau Hadist NABI.Cukup dibaca terjemahan/artinya saja.
+ 24. Apabila bukan 'alim jangan membaca ayat Al-Qur'an atau Hadist NABI.Cukup dibaca terjemahan/artinya saja.
  25. Apabila ta'lim jangan ada kitab2 yang lain ditempat ta'lim tersebut. Kitab2 harus dijaga dengan penuh adab dan dengan sepenuh hati.
  26. Apabila mendengarkan hadist atau ayat Al-Qur'an dan kita sudah beramal, supaya kita bersyukur dan apabila belum beramal kita niat untuk mengamalkannya. Berapa banyak kita mendengarkan, setiap kali mendengarkan kita mendapatkan satu nur.
  27. Dalam ta'lim kitabi pendengar tidak boleh disuruh mengulangi (takror).
