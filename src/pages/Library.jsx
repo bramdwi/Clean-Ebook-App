@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Search, SlidersHorizontal, Grid3X3, List, Sun, Moon, BookOpen } from 'lucide-react';
 import { BookCover } from '../components/BookCover';
+import { useNavigate } from 'react-router-dom';
 
 import styles from './Library.module.css';
 
@@ -10,6 +11,37 @@ export function Library({ books, filteredBooks, searchQuery, setSearchQuery, CAT
 
   const [viewMode, setViewMode] = useState('grid');
   const [showFilters, setShowFilters] = useState(false);
+  const navigate = useNavigate();
+
+  // --- 1. MENYIAPKAN BUKU STATIS (NATIVE TEXT) ---
+  const staticBook = {
+    id: 'static-asharoh',
+    title: 'ASHAROH (Program Raiwind)',
+    author: 'Ir. Soni Harsono',
+    category: 'Agama',
+    fileSize: 'Sangat Ringan',
+    format: 'TEXT',
+    pages: 1, 
+    currentPage: 0,
+    color: '#c0392b' // Warna sampul merah klasik
+  };
+
+  // --- 2. FILTER PENCARIAN UNTUK BUKU STATIS ---
+  // Memastikan buku ini tetap bisa dicari lewat kolom search
+  const matchesSearch = staticBook.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        staticBook.author.toLowerCase().includes(searchQuery.toLowerCase());
+
+  // Menggabungkan buku statis dengan buku-buku hasil upload
+  const displayBooks = matchesSearch ? [staticBook, ...filteredBooks] : filteredBooks;
+
+  // --- 3. FUNGSI KLIK KHUSUS ---
+  const handleBookSelect = (id) => {
+    if (id === 'static-asharoh') {
+      navigate('/reader'); // Langsung buka rute Reader Native Text
+    } else {
+      onSelectBook(id); // Jalankan fungsi PDF biasa untuk buku lain
+    }
+  };
 
   return (
     <div className={styles.page}>
@@ -18,7 +50,8 @@ export function Library({ books, filteredBooks, searchQuery, setSearchQuery, CAT
         <div className={styles.headerTop}>
           <div>
             <h1 className={styles.logo}>Clean<span>Ebook</span></h1>
-            <p className={styles.subtitle}>{stats.total} books in your library</p>
+            {/* Tambahkan +1 pada total agar buku statis ikut terhitung */}
+            <p className={styles.subtitle}>{stats.total + 1} books in your library</p>
           </div>
           <div className={styles.headerActions}>
             <button className={styles.iconBtn} onClick={toggleTheme} aria-label="Toggle theme">
@@ -105,21 +138,23 @@ export function Library({ books, filteredBooks, searchQuery, setSearchQuery, CAT
 
       {/* Book Grid / List */}
       <main className={styles.main}>
-        {filteredBooks.length === 0 ? (
+        {displayBooks.length === 0 ? (
           <div className={styles.empty}>
             <BookOpen size={48} strokeWidth={1} />
             <p>No books found</p>
           </div>
         ) : viewMode === 'grid' ? (
           <div className={styles.grid}>
-            {filteredBooks.map(book => (
-              <BookCard key={book.id} book={book} onSelect={onSelectBook} onFavorite={toggleFavorite} />
+            {/* Gunakan displayBooks, bukan filteredBooks */}
+            {displayBooks.map(book => (
+              <BookCard key={book.id} book={book} onSelect={handleBookSelect} onFavorite={toggleFavorite} />
             ))}
           </div>
         ) : (
           <div className={styles.list}>
-            {filteredBooks.map(book => (
-              <BookListItem key={book.id} book={book} onSelect={onSelectBook} onFavorite={toggleFavorite} />
+            {/* Gunakan displayBooks, bukan filteredBooks */}
+            {displayBooks.map(book => (
+              <BookListItem key={book.id} book={book} onSelect={handleBookSelect} onFavorite={toggleFavorite} />
             ))}
           </div>
         )}
