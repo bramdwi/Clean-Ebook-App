@@ -11,7 +11,7 @@ export function Library({ books, filteredBooks, searchQuery, setSearchQuery, CAT
   const [viewMode, setViewMode] = useState('grid');
   const [showFilters, setShowFilters] = useState(false);
 
-  // --- 1. MENYIAPKAN BUKU STATIS (NATIVE TEXT) ---
+  // --- DATA BUKU STATIS (Diperbarui dengan coverColor dan coverAccent) ---
   const staticBook = {
     id: 'static-asharoh',
     title: 'ASHAROH (Program Raiwind)',
@@ -21,25 +21,21 @@ export function Library({ books, filteredBooks, searchQuery, setSearchQuery, CAT
     format: 'TEXT',
     pages: 1, 
     currentPage: 0,
-    color: '#c0392b'
+    coverColor: '#2c3e50', 
+    coverAccent: '#e74c3c' 
   };
 
-  // --- 2. PENGAMAN PENCARIAN (Mencegah Error Layar Kosong) ---
   const safeSearch = searchQuery ? searchQuery.toLowerCase() : '';
   const matchesSearch = staticBook.title.toLowerCase().includes(safeSearch) ||
                         staticBook.author.toLowerCase().includes(safeSearch);
 
-  // Pastikan filteredBooks selalu berupa array sebelum digabungkan
   const safeFilteredBooks = filteredBooks || [];
   const displayBooks = matchesSearch ? [staticBook, ...safeFilteredBooks] : safeFilteredBooks;
 
-  // --- 3. MENGGUNAKAN FUNGSI BAWAAN APP ---
-  // Kita kembalikan ke fungsi onSelectBook bawaan Anda agar tidak bentrok
   const handleBookSelect = (id) => {
     onSelectBook(id);
   };
 
-  // Pastikan stats tidak memicu error jika belum termuat
   const safeStats = stats || { total: 0, reading: 0, finished: 0, favorites: 0 };
 
   return (

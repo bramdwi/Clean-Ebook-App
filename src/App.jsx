@@ -9,6 +9,20 @@ import { UploadPage } from './pages/UploadPage';
 import { FavoritesPage, ReadingPage, SearchPage } from './pages/SubPages';
 import './index.css';
 
+// --- DATA BUKU STATIS ---
+const staticAsharoh = {
+  id: 'static-asharoh',
+  title: 'ASHAROH (Program Raiwind)',
+  author: 'Ir. Soni Harsono',
+  category: 'Agama',
+  fileSize: 'Native Text',
+  format: 'TEXT',
+  pages: 1,
+  currentPage: 0,
+  coverColor: '#2c3e50', // Warna utama sampul (Biru gelap)
+  coverAccent: '#e74c3c' // Warna aksen sampul (Merah)
+};
+
 export default function App() {
   const { theme, toggleTheme } = useTheme();
   const booksState = useBooks();
@@ -16,8 +30,14 @@ export default function App() {
   const [selectedBookId, setSelectedBookId] = useState(null);
   const [readingBookId, setReadingBookId] = useState(null);
 
-  const selectedBook = selectedBookId ? booksState.getBook(selectedBookId) : null;
-  const readingBook = readingBookId ? booksState.getBook(readingBookId) : null;
+  // Jika yang dipilih adalah buku statis, gunakan data statisAsharoh. Jika tidak, cari di database.
+  const selectedBook = selectedBookId === 'static-asharoh' 
+    ? staticAsharoh 
+    : (selectedBookId ? booksState.getBook(selectedBookId) : null);
+    
+  const readingBook = readingBookId === 'static-asharoh' 
+    ? staticAsharoh 
+    : (readingBookId ? booksState.getBook(readingBookId) : null);
 
   if (readingBook) {
     return (
