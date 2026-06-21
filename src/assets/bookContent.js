@@ -9,8 +9,8 @@ Adab Masjid | 39
 Adab Musyawaroh | 43
 Adab Ta'lim | 45
 Adab Bayan | 48
-Adab Taskil. | 52
-Adab Usuli. | 53
+Adab Taskil | 52
+Adab Usuli | 53
 Adab Majlis | 54
 Adab Khususi (Ziarah) Ulama. | 56
 Adab Amir dan Makmur | 59
@@ -19,7 +19,7 @@ Mudzakaroh Memelihara Badan | 62
 Adab Perjalanan | 64
 Mudzakaroh Mengenai Wanita | 64
 Adab Khitmad | 71
-Adab Makan... | 75
+Adab Makan | 75
 Adab Tidur | 78
 Adab Istinja | 80
 
