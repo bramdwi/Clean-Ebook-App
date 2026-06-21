@@ -25,10 +25,11 @@ export function Reader({ book, onBack }) {
     const paginated = [];
     let currPage = [];
     let currLen = 0;
-    const MAX_CHAR_PER_PAGE = 850; // Ditingkatkan agar kertas terisi penuh
+    const MAX_CHAR_PER_PAGE = 850; 
 
     cleanParagraphs.forEach(para => {
-      const text = para.trim();
+      // PERBAIKAN NO 7: Bersihkan spasi ganda atau tab berlebih menjadi satu spasi tunggal
+      const text = para.replace(/\s+/g, ' ').trim();
       if (!text) return;
 
       const words = text.split(' ');
@@ -39,28 +40,25 @@ export function Reader({ book, onBack }) {
         currentSentenceChunk.push(word);
         currentSentenceLen += word.length + 1;
 
-        // Deteksi apakah kata ini adalah akhir dari sebuah kalimat (titik, seru, tanya)
-        const isEndOfSentence = /[.!?]$/.test(word) || /[.!?]\*\*$/.test(word) || /[.!?]"$/.test(word);
+        // PERBAIKAN NO 9: Pastikan angka dengan titik (misal "9.") tidak dianggap akhir kalimat
+        const isNumberList = /^\d+\.$/.test(word) || /^\*\*\d+\.\*\*$/.test(word);
+        const isEndOfSentence = (/[.!?]$/.test(word) || /[.!?]\*\*$/.test(word) || /[.!?]"$/.test(word)) && !isNumberList;
 
         if (isEndOfSentence) {
-           // Jika menambah kalimat ini bikin halaman penuh, pindah ke halaman baru DULU
            if (currLen + currentSentenceLen > MAX_CHAR_PER_PAGE && currPage.length > 0) {
              paginated.push(currPage);
              currPage = [];
              currLen = 0;
            }
            
-           // Masukkan kalimat utuh ke halaman
            currPage.push({ text: currentSentenceChunk.join(' ') + ' ', isParagraph: false });
            currLen += currentSentenceLen;
            
-           // Kosongkan memori kalimat sementara
            currentSentenceChunk = [];
            currentSentenceLen = 0;
         }
       });
 
-      // Jika ada sisa kata di akhir paragraf yang tidak ditutup dengan titik
       if (currentSentenceChunk.length > 0) {
          if (currLen + currentSentenceLen > MAX_CHAR_PER_PAGE && currPage.length > 0) {
              paginated.push(currPage);
@@ -71,9 +69,8 @@ export function Reader({ book, onBack }) {
          currLen += currentSentenceLen;
       }
 
-      // Beri penanda bahwa ini adalah akhir dari sebuah paragraf
       currPage.push({ text: '', isParagraph: true });
-      currLen += 40; // Beri sedikit jarak imajiner untuk spasi paragraf
+      currLen += 40; 
     });
 
     if (currPage.length > 0) {
@@ -83,7 +80,6 @@ export function Reader({ book, onBack }) {
     return { pages: paginated, toc: tocItems };
   }, []);
 
-  // Scroll otomatis ke atas
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentPage]);
@@ -98,7 +94,6 @@ export function Reader({ book, onBack }) {
   const increaseFont = () => setFontSize(prev => Math.min(prev + 0.1, 1.6));
   const decreaseFont = () => setFontSize(prev => Math.max(prev - 0.1, 0.85));
 
-  // --- 2. PENCARIAN DAFTAR ISI ---
   const handleTocClick = (tocEntry) => {
     const cleanTitle = tocEntry.split('|')[0].replace(/\./g, '').trim().toLowerCase();
     
@@ -119,7 +114,6 @@ export function Reader({ book, onBack }) {
     }
   };
 
-  // --- 3. RENDER TEKS (MENGGABUNGKAN KALIMAT MENJADI PARAGRAF UTUH) ---
   const formatBoldText = (text) => {
     const parts = text.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, i) => {
@@ -143,13 +137,12 @@ export function Reader({ book, onBack }) {
                </p>
              );
           }
-          currentParaText = ""; // Reset untuk paragraf berikutnya
+          currentParaText = ""; 
        } else {
           currentParaText += item.text;
        }
     });
     
-    // Jika ada kalimat yang terputus halamannya (paragraf belum selesai)
     if (currentParaText.trim()) {
        html.push(
          <p key="last" style={{...styles.paragraph, fontSize: `${fontSize}rem`}}>
@@ -165,8 +158,6 @@ export function Reader({ book, onBack }) {
 
   return (
     <div style={styles.page}>
-      
-      {/* --- MENU HAMBURGER (SIDEBAR DAFTAR ISI) --- */}
       {isSidebarOpen && (
         <div style={styles.sidebarOverlay} onClick={() => setIsSidebarOpen(false)}>
           <div style={styles.sidebar} onClick={e => e.stopPropagation()}>
@@ -190,7 +181,6 @@ export function Reader({ book, onBack }) {
         </div>
       )}
 
-      {/* --- BAR MENU ATAS --- */}
       <div style={styles.topBar}>
         <div style={{display: 'flex', gap: '12px', alignItems: 'center'}}>
            <button onClick={onBack} style={styles.backButton}>← Beranda</button>
@@ -207,14 +197,12 @@ export function Reader({ book, onBack }) {
         </div>
       </div>
 
-      {/* --- AREA KERTAS BUKU --- */}
       <div style={styles.readerContainer}>
         <div style={styles.paper}>
           {renderPageContent(pages[currentPage])}
         </div>
       </div>
 
-      {/* --- NAVIGASI BAWAH --- */}
       <div style={styles.bottomBar}>
         <button 
           disabled={currentPage === 0} 
