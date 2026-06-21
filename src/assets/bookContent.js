@@ -274,7 +274,7 @@ Sebelum berdiri untuk bayan hendaknya bertanya pada diri sendiri kenapa saya bay
  18. Waktu bayan bicra dengan lafadz perlahan-lahan.
  19. Perbanyak bayan mengenai fadzoil.
  20. Setiap pembicaraan jangan mengatakan bahwa RASUL SAW bersabda kita ini lemah cukup begini. Tetapi kita harus selalu bicara dengan penuh semangat dan jasbah (optimis)
- 21. Jangan membaca ayat Al-Quran atau Hadits dalam bayan kecuali orang yang `aiim yang boleh.
+ 21. Jangan membaca ayat Al-Quran atau Hadits dalam bayan kecuali orang yang 'aiim yang boleh.
  22. Jangan bayan mengenai keburukan orang lain
  23. Paling bagus orang yang bayan berdiri supaya orang paham dalam pembicaraannya.
  24. Jangan ceritakan amalan salah seorang diantara kita, misalnya tasbikhatnya, tahajjudnya, nawafilnya, takbiratul ulanya, ketaatan kepada amir, menjaga pandangannya dll. Itu tidak baik bagi orang tersebut dan juga bagi orang lain.
