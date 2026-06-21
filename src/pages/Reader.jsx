@@ -114,4 +114,4 @@ const styles = {
   }
 };
 
-export default Reader;
+export { Reader };
