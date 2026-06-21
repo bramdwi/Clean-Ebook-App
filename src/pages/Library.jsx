@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Search, SlidersHorizontal, Grid3X3, List, Sun, Moon, BookOpen } from 'lucide-react';
 import { BookCover } from '../components/BookCover';
-import { useNavigate } from 'react-router-dom';
 
 import styles from './Library.module.css';
 
@@ -11,7 +10,6 @@ export function Library({ books, filteredBooks, searchQuery, setSearchQuery, CAT
 
   const [viewMode, setViewMode] = useState('grid');
   const [showFilters, setShowFilters] = useState(false);
-  const navigate = useNavigate();
 
   // --- 1. MENYIAPKAN BUKU STATIS (NATIVE TEXT) ---
   const staticBook = {
@@ -19,39 +17,38 @@ export function Library({ books, filteredBooks, searchQuery, setSearchQuery, CAT
     title: 'ASHAROH (Program Raiwind)',
     author: 'Ir. Soni Harsono',
     category: 'Agama',
-    fileSize: 'Sangat Ringan',
+    fileSize: 'Native Text',
     format: 'TEXT',
     pages: 1, 
     currentPage: 0,
-    color: '#c0392b' // Warna sampul merah klasik
+    color: '#c0392b'
   };
 
-  // --- 2. FILTER PENCARIAN UNTUK BUKU STATIS ---
-  // Memastikan buku ini tetap bisa dicari lewat kolom search
-  const matchesSearch = staticBook.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        staticBook.author.toLowerCase().includes(searchQuery.toLowerCase());
+  // --- 2. PENGAMAN PENCARIAN (Mencegah Error Layar Kosong) ---
+  const safeSearch = searchQuery ? searchQuery.toLowerCase() : '';
+  const matchesSearch = staticBook.title.toLowerCase().includes(safeSearch) ||
+                        staticBook.author.toLowerCase().includes(safeSearch);
 
-  // Menggabungkan buku statis dengan buku-buku hasil upload
-  const displayBooks = matchesSearch ? [staticBook, ...filteredBooks] : filteredBooks;
+  // Pastikan filteredBooks selalu berupa array sebelum digabungkan
+  const safeFilteredBooks = filteredBooks || [];
+  const displayBooks = matchesSearch ? [staticBook, ...safeFilteredBooks] : safeFilteredBooks;
 
-  // --- 3. FUNGSI KLIK KHUSUS ---
+  // --- 3. MENGGUNAKAN FUNGSI BAWAAN APP ---
+  // Kita kembalikan ke fungsi onSelectBook bawaan Anda agar tidak bentrok
   const handleBookSelect = (id) => {
-    if (id === 'static-asharoh') {
-      navigate('/reader'); // Langsung buka rute Reader Native Text
-    } else {
-      onSelectBook(id); // Jalankan fungsi PDF biasa untuk buku lain
-    }
+    onSelectBook(id);
   };
+
+  // Pastikan stats tidak memicu error jika belum termuat
+  const safeStats = stats || { total: 0, reading: 0, finished: 0, favorites: 0 };
 
   return (
     <div className={styles.page}>
-      {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerTop}>
           <div>
             <h1 className={styles.logo}>Clean<span>Ebook</span></h1>
-            {/* Tambahkan +1 pada total agar buku statis ikut terhitung */}
-            <p className={styles.subtitle}>{stats.total + 1} books in your library</p>
+            <p className={styles.subtitle}>{safeStats.total + 1} books in your library</p>
           </div>
           <div className={styles.headerActions}>
             <button className={styles.iconBtn} onClick={toggleTheme} aria-label="Toggle theme">
@@ -60,32 +57,30 @@ export function Library({ books, filteredBooks, searchQuery, setSearchQuery, CAT
           </div>
         </div>
 
-        {/* Stats strip */}
         <div className={styles.statsStrip}>
           <div className={styles.stat}>
-            <span className={styles.statNum}>{stats.reading}</span>
+            <span className={styles.statNum}>{safeStats.reading}</span>
             <span className={styles.statLabel}>Reading</span>
           </div>
           <div className={styles.statDivider} />
           <div className={styles.stat}>
-            <span className={styles.statNum}>{stats.finished}</span>
+            <span className={styles.statNum}>{safeStats.finished}</span>
             <span className={styles.statLabel}>Finished</span>
           </div>
           <div className={styles.statDivider} />
           <div className={styles.stat}>
-            <span className={styles.statNum}>{stats.favorites}</span>
+            <span className={styles.statNum}>{safeStats.favorites}</span>
             <span className={styles.statLabel}>Favorites</span>
           </div>
         </div>
 
-        {/* Search */}
         <div className={styles.searchRow}>
           <div className={styles.searchBox}>
             <Search size={16} className={styles.searchIcon} />
             <input
               type="search"
               placeholder="Search books, authors, tags…"
-              value={searchQuery}
+              value={searchQuery || ''}
               onChange={e => setSearchQuery(e.target.value)}
               className={styles.searchInput}
             />
@@ -106,7 +101,6 @@ export function Library({ books, filteredBooks, searchQuery, setSearchQuery, CAT
           </button>
         </div>
 
-        {/* Filters */}
         {showFilters && (
           <div className={styles.filterRow}>
             <span className={styles.filterLabel}>Sort:</span>
@@ -122,9 +116,8 @@ export function Library({ books, filteredBooks, searchQuery, setSearchQuery, CAT
           </div>
         )}
 
-        {/* Categories */}
         <div className={styles.categories}>
-          {CATEGORIES.map(cat => (
+          {(CATEGORIES || []).map(cat => (
             <button
               key={cat}
               className={`${styles.catChip} ${activeCategory === cat ? styles.catActive : ''}`}
@@ -136,7 +129,6 @@ export function Library({ books, filteredBooks, searchQuery, setSearchQuery, CAT
         </div>
       </header>
 
-      {/* Book Grid / List */}
       <main className={styles.main}>
         {displayBooks.length === 0 ? (
           <div className={styles.empty}>
@@ -145,14 +137,12 @@ export function Library({ books, filteredBooks, searchQuery, setSearchQuery, CAT
           </div>
         ) : viewMode === 'grid' ? (
           <div className={styles.grid}>
-            {/* Gunakan displayBooks, bukan filteredBooks */}
             {displayBooks.map(book => (
               <BookCard key={book.id} book={book} onSelect={handleBookSelect} onFavorite={toggleFavorite} />
             ))}
           </div>
         ) : (
           <div className={styles.list}>
-            {/* Gunakan displayBooks, bukan filteredBooks */}
             {displayBooks.map(book => (
               <BookListItem key={book.id} book={book} onSelect={handleBookSelect} onFavorite={toggleFavorite} />
             ))}
