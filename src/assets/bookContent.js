@@ -168,5 +168,40 @@ Maksudnya supaya kita bertanggung jawab keseluruh alam seperti yang dikehendaki 
  17. Untuk para jemaah Tabligh, barang2 ditutup dengan rapi.
  18. Barang2 yang berharga harus dijaga jangan sampai karena kelalaian kita, orang lain berbuat dosa (mencuri).
  19. Jangan menanggalkan baju khususnya waktu tidur, atau menjemur/menggantung pakaian didinding, tembok masjid atau jendela.
+20. Apabila jama'ah akan menanggalkan masjid, sebaiknya sedikit memberikan uang untuk masjid sebagai pengganti listrik dan air yang kita gunakan.
+ 21. Jangan memasak sayur atau lainnya di sebagian masjid (teras/serambi).
+ 22. Yang paling afdhol, masjid hanya untuk mengerjakan sholat fardhu, sedangkan sholat sunnah nawafil diserambi masjid atau dirumah kita masing-masing.
+ 23. Mustahabnya setelah kita menjalankan sholat fardhu and ingin sholat sunnah maka pindah tempat/geser.
+ 24. Jangan menempati tempat sholat yang sudah biasa ditempati orang tempatan.
+ 25. Didalam masjid jangan digumakan untuk membaca/ belajar buku2 duniawi atau kesenian dunia.
+26. Kita menggunakan air wudhu di masjid yang hemat. Apabila seseorang tidak bisa hemat menggumakan maka dia tidak bisa menghemat perkara yang lain. ALLAH SWT tidak suka kepada orang yang boros dan mubadzir.
+ 27. Didalam masjid apabila sudah mulai sholat berjama'ah/berdiri shof maka jangan kita berdiri sholat sunat karena hukumnya makruh Tahrimi (1½ haram). Misalnya sudah Qomat sholat subuh sedangkan kita berdiri sholat sunat ditempat lain/dibelakang.
+ 28. Jangan kita membuat shof kedua sebelum shof pertama dipenuhi. Hukumnya makruh Tahrimi/
+ 29. Masjid jangan dibuat untuk jalan atau perlintasan
+ 30. Didalam masjid kalau sholat supaya diberi sutroh (batas)
+ 31. Dalamasjid siapa yang datang duluan dia berhak menempati tempat tersebut (depan) Jangan kita meletakkan sorban/sesuatu dan kita tinggalkan. Orang akan paham bahwa tempat tersebut sudah kita tempati dan ini bertentangan dengan syariat.
+ 32. Before kita ke masjid jangan kita makan bawang putih/merah/makanan berbau.
+**Mudzakaroh (No.2) Adab Musyawaroh.**
+Maksud/tujuan: Sebelum duduk didalam musyawaroh berfikir sejenak, kenapa kita duduk dalam musyawaroh dan untuk siapa ? Bagaimana keadaan agama diseluruh alam dan bagaimana cara mengusahakannya, apakah di Raiwind dan di Markaz tempatan kita telah berjalan dan bagaimana di masjid-masjid kita apakah semua sempurna jema'ahnya? Apabila telah sempurna apa keuntungannya dan apabila tidak sempurna apa, kerugiannya.
+**Fadhilahnya:**
+ 1. Musyawaroh adalah perintah ALLAH SWT dan perintah ALLAH SWT supaya di musyawarahkan
+ 2. Tentang musyawarohpun diturunkan Wahyu.
+ 3. Hati adalah Amanah & apa yang ada dalam hati diutarakan dalam musyawaroh.
+ 4. Setiap saudara kita berbicara, kita semua mendengarkan dengan tawajuh.
+ 5. Meninggalkan sifat tangkit (menguatkan), tangkis (meremehkan), tardid (menolak) & ta'gobul (memaksakan pendapatnya spy diterima).
+ 6. Niat taat dalam musyawaroh dan jangan ada niat tidak taat dalam keputusan.
+ 7. Apabila usul kita yang diterima dalam musyawarah, kita merasa takut dan apabila usul kita tidak diterima jangan kita kecewa
+ 8. Apapun yang diputuskan dalam musyawaroh kita terima dengan senang dan penuh tanggung jawab mengamalkannya
+ 9. Dalam musyawaroh boleh minta pendapat kepada siapa saja baik yang berdiri atau yang duduk atau orang tertentu.
+10. Keputusan musyawaroh bukan suara yang terbanyak
+ 11. Dalam musyawaroh kedepankan kepentingan agama.
+ 12. Apabila nampak kekurangan atau kekeliruan dalam keputusan, salahkan diri kita.
+ 13. Apabila segala sesuatu telah diputuskan dalam musyawaroh dan kita merobahnya maka tidak akan datang pertolongan ALLAH SWT.
+ 14. Waktu memberikan pendapat, dalam musyawaroh jangan mengatakan pendapat saya seperti saudara itu tetapi pendapatnya diutarakan sendiri (pendapat saya begini).
+ 15. Tidak ada musyawaroh sebelum dan sesudah musyawaroh.
+ 16. Untuk kemaslahatan tertentu harus musyawaroh boleh dimintakan pendapat orang lain setelah musyawaroh.
+ 17. Didalam musyawaroh orang tempatan supaya diikutkan atau diajak bersama kita
+
 
 `;
+
