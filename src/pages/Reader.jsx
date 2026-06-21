@@ -1,56 +1,87 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { bookContent } from '../assets/bookContent';
-import { Menu, X } from 'lucide-react'; // Menggunakan ikon bawaan yang sudah ada di proyek Anda
+import { Menu, X } from 'lucide-react';
 
 export function Reader({ book, onBack }) {
   const [currentPage, setCurrentPage] = useState(0);
-  const [fontSize, setFontSize] = useState(1.05); // Ukuran huruf bawaan (dalam rem)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Kontrol menu Hamburger
+  const [fontSize, setFontSize] = useState(1.05); 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
 
-  // --- 1. MESIN PEMISAH & PAGINASI ---
+  // --- 1. MESIN ALIRAN TEKS OTOMATIS (FLUID PAGINATOR) ---
   const { pages, toc } = useMemo(() => {
     const lines = bookContent.split('\n');
     const tocItems = [];
-    const contentLines = [];
+    const cleanParagraphs = [];
 
     // Pisahkan Daftar Isi dari teks utama
     lines.forEach(line => {
-      // Deteksi baris yang berisi '|' dan diakhiri angka
       if (line.includes('|') && /\d+$/.test(line.trim())) {
         tocItems.push(line);
       } else if (!line.includes('**DAFTAR ISI**')) {
-        // Masukkan ke teks utama jika bukan judul daftar isi
-        contentLines.push(line);
+        cleanParagraphs.push(line);
       }
     });
 
-    // Paginasi teks utama menjadi lebih pendek
     const paginated = [];
-    let currPage = [];
-    let currLen = 0;
-    const MAX_CHAR_PER_PAGE = 750; // Jauh lebih pendek agar pas di HP
+    let currPageTokens = [];
+    let currPageLen = 0;
+    const MAX_CHAR_PER_PAGE = 500; // Ukuran halaman lebih pendek & ideal untuk HP
 
-    contentLines.filter(p => p.trim() !== '').forEach(p => {
-      if (currLen + p.length > MAX_CHAR_PER_PAGE && currPage.length > 0) {
-        paginated.push(currPage);
-        currPage = [p];
-        currLen = p.length;
-      } else {
-        currPage.push(p);
-        currLen += p.length;
+    cleanParagraphs.forEach(para => {
+      const trimmed = para.trim();
+      if (!trimmed) {
+        // Indikator jeda antar paragraf
+        if (currPageLen > 0) {
+          currPageTokens.push({ type: 'break' });
+        }
+        return;
       }
+
+      // Pecah paragraf menjadi bagian tebal (**...**) dan teks biasa
+      const rawTokens = trimmed.split(/(\*\*.*?\*\*)/g).filter(x => x !== '');
+      
+      rawTokens.forEach(token => {
+        if (token.startsWith('**') && token.endsWith('**')) {
+          // Token Tebal: Dimasukkan utuh agar simbol formatting tidak rusak
+          if (currPageLen + token.length > MAX_CHAR_PER_PAGE && currPageTokens.length > 0) {
+            paginated.push(currPageTokens);
+            currPageTokens = [];
+            currPageLen = 0;
+          }
+          currPageTokens.push({ type: 'bold', text: token });
+          currPageLen += token.length;
+        } else {
+          // Token Teks Biasa: Dipecah per kata agar mengalir sempurna tanpa sisa halaman kosong
+          const words = token.split(' ');
+          words.forEach(word => {
+            if (!word) return;
+            if (currPageLen + word.length + 1 > MAX_CHAR_PER_PAGE && currPageTokens.length > 0) {
+              paginated.push(currPageTokens);
+              currPageTokens = [];
+              currPageLen = 0;
+            }
+            currPageTokens.push({ type: 'text', text: word });
+            currPageLen += word.length + 1;
+          });
+        }
+      });
+      
+      // Beri spasi lembut setelah satu paragraf selesai
+      currPageTokens.push({ type: 'space' });
     });
-    if (currPage.length > 0) paginated.push(currPage);
+
+    if (currPageTokens.length > 0) {
+      paginated.push(currPageTokens);
+    }
 
     return { pages: paginated, toc: tocItems };
   }, []);
 
-  // Kembali ke atas kertas setiap ganti halaman
+  // Otomatis scroll ke atas kertas setiap kali halaman berubah
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentPage]);
 
-  // Kontrol Halaman
   const handleNext = () => {
     if (currentPage < pages.length - 1) setCurrentPage(c => c + 1);
   };
@@ -58,17 +89,17 @@ export function Reader({ book, onBack }) {
     if (currentPage > 0) setCurrentPage(c => c - 1);
   };
 
-  // Kontrol Ukuran Huruf
-  const increaseFont = () => setFontSize(prev => Math.min(prev + 0.1, 1.8));
-  const decreaseFont = () => setFontSize(prev => Math.max(prev - 0.1, 0.8));
+  const increaseFont = () => setFontSize(prev => Math.min(prev + 0.1, 1.6));
+  const decreaseFont = () => setFontSize(prev => Math.max(prev - 0.1, 0.85));
 
-  // --- 2. LOGIKA KLIK DAFTAR ISI ---
+  // --- 2. LOGIKA KLIK DAFTAR ISI PADA ALIRAN TEKS ---
   const handleTocClick = (tocEntry) => {
     const cleanTitle = tocEntry.split('|')[0].replace(/\./g, '').trim().toLowerCase();
     
     let foundIndex = -1;
     for (let i = 0; i < pages.length; i++) {
-      const pageText = pages[i].join(' ').toLowerCase();
+      // Satukan seluruh teks pada halaman untuk dicocokkan dengan judul bab
+      const pageText = pages[i].map(t => t.text || '').join(' ').toLowerCase();
       if (pageText.includes(cleanTitle)) {
          foundIndex = i;
          break;
@@ -77,24 +108,30 @@ export function Reader({ book, onBack }) {
 
     if (foundIndex !== -1) {
       setCurrentPage(foundIndex);
-      setIsSidebarOpen(false); // Tutup sidebar setelah melompat ke halaman
+      setIsSidebarOpen(false); 
     } else {
-      alert(`Bagian "${tocEntry.split('|')[0].trim()}" belum tersedia di isi buku.`);
+      alert(`Bagian "${tocEntry.split('|')[0].trim()}" belum tersedia di isi teks buku saat ini.`);
     }
   };
 
-  // --- 3. FORMATTER DESAIN BUKU ---
-  const formatParagraph = (text, index) => {
-    const parts = text.split(/(\*\*.*?\*\*)/g);
+  // --- 3. RENDER ALIRAN TEKS SECARA FLUID ---
+  const formatPageContent = (tokens) => {
     return (
-      <p key={index} style={{ ...styles.paragraph, fontSize: `${fontSize}rem` }}>
-        {parts.map((part, i) => {
-          if (part.startsWith('**') && part.endsWith('**')) {
-            return <strong key={i} style={styles.boldText}>{part.slice(2, -2)}</strong>;
+      <div style={{ ...styles.textFlow, fontSize: `${fontSize}rem` }}>
+        {tokens.map((token, i) => {
+          if (token.type === 'bold') {
+            return <strong key={i} style={styles.boldText}>{token.text.slice(2, -2)} </strong>;
           }
-          return part;
+          if (token.type === 'text') {
+            return <span key={i}>{token.text} </span>;
+          }
+          if (token.type === 'break' || token.type === 'space') {
+            // Menggunakan penanda khusus untuk membuat enter paragraf yang rapi secara inline
+            return <span key={i} style={styles.paraBreak} />;
+          }
+          return null;
         })}
-      </p>
+      </div>
     );
   };
 
@@ -103,7 +140,7 @@ export function Reader({ book, onBack }) {
   return (
     <div style={styles.page}>
       
-      {/* --- MENU HAMBURGER (SIDEBAR) --- */}
+      {/* --- MENU HAMBURGER (SIDEBAR DAFTAR ISI) --- */}
       {isSidebarOpen && (
         <div style={styles.sidebarOverlay} onClick={() => setIsSidebarOpen(false)}>
           <div style={styles.sidebar} onClick={e => e.stopPropagation()}>
@@ -127,28 +164,27 @@ export function Reader({ book, onBack }) {
         </div>
       )}
 
-      {/* --- HEADER ATAS --- */}
+      {/* --- BAR MENU ATAS --- */}
       <div style={styles.topBar}>
-        <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
-           <button onClick={onBack} style={styles.backButton}>←</button>
-           <button onClick={() => setIsSidebarOpen(true)} style={styles.iconBtn}>
+        <div style={{display: 'flex', gap: '12px', alignItems: 'center'}}>
+           <button onClick={onBack} style={styles.backButton}>← Beranda</button>
+           <button onClick={() => setIsSidebarOpen(true)} style={styles.iconBtn} aria-label="Open menu">
              <Menu size={22} />
            </button>
         </div>
 
         <span style={styles.headerTitle}>{book?.title || 'Membaca'}</span>
 
-        {/* Kontrol Font */}
         <div style={styles.fontControls}>
           <button onClick={decreaseFont} style={styles.fontBtn}>A-</button>
           <button onClick={increaseFont} style={styles.fontBtn}>A+</button>
         </div>
       </div>
 
-      {/* --- KERTAS BUKU UTAMA --- */}
+      {/* --- AREA KERTAS BUKU --- */}
       <div style={styles.readerContainer}>
         <div style={styles.paper}>
-          {pages[currentPage].map((p, i) => formatParagraph(p, i))}
+          {formatPageContent(pages[currentPage])}
         </div>
       </div>
 
@@ -161,7 +197,7 @@ export function Reader({ book, onBack }) {
         >
           ← Prev
         </button>
-        <span style={styles.pageIndicator}>Halaman {currentPage + 1} dari {pages.length}</span>
+        <span style={styles.pageIndicator}>Hal. {currentPage + 1} dari {pages.length}</span>
         <button 
           disabled={currentPage === pages.length - 1} 
           onClick={handleNext} 
@@ -174,13 +210,12 @@ export function Reader({ book, onBack }) {
   );
 }
 
-// --- PENGATURAN GAYA (STYLES) ---
 const styles = {
   page: {
     backgroundColor: '#1E1E1E',
     minHeight: '100vh',
     fontFamily: '"Lora", Georgia, serif',
-    paddingBottom: '80px', 
+    paddingBottom: '85px', 
   },
   topBar: {
     position: 'sticky',
@@ -210,10 +245,11 @@ const styles = {
     padding: '6px 12px',
     borderRadius: '20px',
     cursor: 'pointer',
-    fontSize: '0.9rem',
+    fontSize: '0.85rem',
+    fontFamily: '"DM Sans", sans-serif',
   },
   headerTitle: {
-    fontSize: '0.95rem',
+    fontSize: '0.9rem',
     fontWeight: '600',
     fontFamily: '"DM Sans", sans-serif',
     color: '#A0A0A0',
@@ -232,15 +268,16 @@ const styles = {
     color: 'white',
     border: 'none',
     borderRadius: '4px',
-    padding: '4px 8px',
+    padding: '4px 10px',
     fontWeight: 'bold',
     cursor: 'pointer',
     fontFamily: '"DM Sans", sans-serif',
+    fontSize: '0.85rem',
   },
   readerContainer: {
     display: 'flex',
     justifyContent: 'center',
-    padding: '20px 10px 40px',
+    padding: '15px 10px 30px',
   },
   paper: {
     backgroundColor: '#FDF6E3',
@@ -250,13 +287,18 @@ const styles = {
     padding: '30px 25px',
     borderRadius: '8px',
     boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-    lineHeight: '1.8',
-    minHeight: '65vh', 
+    minHeight: '62vh', 
   },
-  paragraph: {
-    marginBottom: '16px',
+  textFlow: {
     textAlign: 'justify',
-    transition: 'font-size 0.2s ease', // Animasi halus saat ganti ukuran huruf
+    lineHeight: '1.85',
+    whiteSpace: 'normal',
+    wordBreak: 'break-word',
+    transition: 'font-size 0.15s ease',
+  },
+  paraBreak: {
+    display: 'block',
+    height: '14px', 
   },
   boldText: {
     fontWeight: '700',
@@ -268,7 +310,7 @@ const styles = {
     left: 0,
     right: 0,
     backgroundColor: '#1E1E1E',
-    padding: '15px 20px',
+    padding: '14px 20px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -276,7 +318,7 @@ const styles = {
     zIndex: 40,
   },
   pageIndicator: {
-    fontSize: '0.9rem',
+    fontSize: '0.85rem',
     color: '#888',
     fontFamily: '"DM Sans", sans-serif',
     fontWeight: 'bold',
@@ -285,23 +327,23 @@ const styles = {
     backgroundColor: '#2c3e50',
     color: 'white',
     border: 'none',
-    padding: '10px 16px',
+    padding: '10px 18px',
     borderRadius: '6px',
     fontWeight: 'bold',
     cursor: 'pointer',
     fontFamily: '"DM Sans", sans-serif',
+    fontSize: '0.9rem',
   },
   navBtnDisabled: {
     backgroundColor: '#333',
     color: '#666',
     border: 'none',
-    padding: '10px 16px',
+    padding: '10px 18px',
     borderRadius: '6px',
     cursor: 'not-allowed',
     fontFamily: '"DM Sans", sans-serif',
+    fontSize: '0.9rem',
   },
-  
-  // Gaya khusus Menu Hamburger (Sidebar)
   sidebarOverlay: {
     position: 'fixed',
     top: 0, left: 0, right: 0, bottom: 0,
@@ -316,7 +358,6 @@ const styles = {
     boxShadow: '2px 0 15px rgba(0,0,0,0.5)',
     display: 'flex',
     flexDirection: 'column',
-    animation: 'slideIn 0.3s forwards',
   },
   sidebarHeader: {
     padding: '20px',
@@ -332,19 +373,19 @@ const styles = {
     fontFamily: '"DM Sans", sans-serif',
   },
   sidebarContent: {
-    padding: '15px',
+    padding: '10px 15px',
     overflowY: 'auto',
     flexGrow: 1,
   },
   tocLink: {
-    padding: '12px 10px',
+    padding: '14px 10px',
     borderBottom: '1px solid #2a2a2a',
     cursor: 'pointer',
-    color: '#A0A0A0',
-    transition: 'color 0.2s',
+    color: '#B0B0B0',
   },
   tocText: {
-    fontSize: '1.05rem',
+    fontSize: '1rem',
     fontFamily: '"DM Sans", sans-serif',
+    fontWeight: '500',
   }
 };
