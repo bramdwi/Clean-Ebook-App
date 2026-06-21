@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react';
 import { bookContent } from '../assets/bookContent';
-import { useNavigate } from 'react-router-dom';
 
-function Reader() {
-  const navigate = useNavigate();
-
+// Menerima prop 'book' untuk judul dan 'onBack' untuk tombol kembali
+export function Reader({ book, onBack }) {
+  
   // Scroll otomatis ke atas saat buku dibuka
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -12,18 +11,16 @@ function Reader() {
 
   // Fungsi cerdas untuk mengubah teks \*\*tebal\*\* menjadi elemen <strong> HTML
   const formatText = (text) => {
+    if (!text) return null;
     return text.split('\n').map((line, index) => {
-      // Jika baris kosong, beri jarak (enter)
       if (!line.trim()) return <br key={index} />;
 
-      // Pisahkan teks berdasarkan tanda bintang ganda **
       const parts = line.split(/(\*\*.*?\*\*)/g);
       
       return (
         <p key={index} style={styles.paragraph}>
           {parts.map((part, i) => {
             if (part.startsWith('**') && part.endsWith('**')) {
-              // Hapus bintangnya dan jadikan tebal
               return <strong key={i} style={styles.boldText}>{part.slice(2, -2)}</strong>;
             }
             return part;
@@ -35,12 +32,12 @@ function Reader() {
 
   return (
     <div style={styles.page}>
-      {/* Tombol Kembali (Navigasi Atas) */}
+      {/* Tombol Kembali (Terhubung langsung ke App.jsx) */}
       <div style={styles.topBar}>
-        <button onClick={() => navigate(-1)} style={styles.backButton}>
+        <button onClick={onBack} style={styles.backButton}>
           ← Kembali
         </button>
-        <span style={styles.headerTitle}>ASHAROH - Program Raiwind</span>
+        <span style={styles.headerTitle}>{book?.title || 'Membaca Buku'}</span>
       </div>
 
       {/* Kontainer Utama Buku */}
@@ -53,10 +50,10 @@ function Reader() {
   );
 }
 
-// Desain E-Reader Premium (Mirip Kindle/Apple Books)
+// Desain E-Reader Premium
 const styles = {
   page: {
-    backgroundColor: '#1E1E1E', // Latar belakang gelap di luar kertas
+    backgroundColor: '#1E1E1E',
     minHeight: '100vh',
     fontFamily: '"Lora", Georgia, serif',
   },
@@ -91,27 +88,25 @@ const styles = {
   readerContainer: {
     display: 'flex',
     justifyContent: 'center',
-    padding: '20px 10px 60px', // Ruang kosong di bawah agar nyaman
+    padding: '20px 10px 60px',
   },
   paper: {
-    backgroundColor: '#FDF6E3', // Warna kertas Sepia (Sangat nyaman di mata)
-    color: '#2C2825', // Warna tinta Charcoal/Abu Tua (Bukan hitam murni)
-    maxWidth: '750px', // Lebar ideal untuk membaca agar mata tidak capek
+    backgroundColor: '#FDF6E3',
+    color: '#2C2825',
+    maxWidth: '750px',
     width: '100%',
     padding: '40px 30px',
     borderRadius: '8px',
     boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-    lineHeight: '1.8', // Jarak antar baris yang sangat lega
+    lineHeight: '1.8',
     fontSize: '1.05rem',
   },
   paragraph: {
     marginBottom: '14px',
-    textAlign: 'justify', // Teks rata kiri-kanan seperti buku asli
+    textAlign: 'justify',
   },
   boldText: {
     fontWeight: '700',
-    color: '#1A1612', // Teks tebal sedikit lebih gelap
+    color: '#1A1612',
   }
 };
-
-export { Reader };
