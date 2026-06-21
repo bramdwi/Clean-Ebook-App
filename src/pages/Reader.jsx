@@ -7,13 +7,13 @@ export function Reader({ book, onBack }) {
   const [fontSize, setFontSize] = useState(1.05); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
 
-  // --- 1. MESIN ALIRAN TEKS OTOMATIS (FLUID PAGINATOR) ---
+  // --- 1. MESIN PEMISAH KALIMAT CERDAS (SENTENCE-BOUNDARY PAGINATOR) ---
   const { pages, toc } = useMemo(() => {
     const lines = bookContent.split('\n');
     const tocItems = [];
     const cleanParagraphs = [];
 
-    // Pisahkan Daftar Isi dari teks utama
+    // Pisahkan Daftar Isi dari teks
     lines.forEach(line => {
       if (line.includes('|') && /\d+$/.test(line.trim())) {
         tocItems.push(line);
@@ -23,61 +23,67 @@ export function Reader({ book, onBack }) {
     });
 
     const paginated = [];
-    let currPageTokens = [];
-    let currPageLen = 0;
-    const MAX_CHAR_PER_PAGE = 500; // Ukuran halaman lebih pendek & ideal untuk HP
+    let currPage = [];
+    let currLen = 0;
+    const MAX_CHAR_PER_PAGE = 850; // Ditingkatkan agar kertas terisi penuh
 
     cleanParagraphs.forEach(para => {
-      const trimmed = para.trim();
-      if (!trimmed) {
-        // Indikator jeda antar paragraf
-        if (currPageLen > 0) {
-          currPageTokens.push({ type: 'break' });
-        }
-        return;
-      }
+      const text = para.trim();
+      if (!text) return;
 
-      // Pecah paragraf menjadi bagian tebal (**...**) dan teks biasa
-      const rawTokens = trimmed.split(/(\*\*.*?\*\*)/g).filter(x => x !== '');
-      
-      rawTokens.forEach(token => {
-        if (token.startsWith('**') && token.endsWith('**')) {
-          // Token Tebal: Dimasukkan utuh agar simbol formatting tidak rusak
-          if (currPageLen + token.length > MAX_CHAR_PER_PAGE && currPageTokens.length > 0) {
-            paginated.push(currPageTokens);
-            currPageTokens = [];
-            currPageLen = 0;
-          }
-          currPageTokens.push({ type: 'bold', text: token });
-          currPageLen += token.length;
-        } else {
-          // Token Teks Biasa: Dipecah per kata agar mengalir sempurna tanpa sisa halaman kosong
-          const words = token.split(' ');
-          words.forEach(word => {
-            if (!word) return;
-            if (currPageLen + word.length + 1 > MAX_CHAR_PER_PAGE && currPageTokens.length > 0) {
-              paginated.push(currPageTokens);
-              currPageTokens = [];
-              currPageLen = 0;
-            }
-            currPageTokens.push({ type: 'text', text: word });
-            currPageLen += word.length + 1;
-          });
+      const words = text.split(' ');
+      let currentSentenceChunk = [];
+      let currentSentenceLen = 0;
+
+      words.forEach(word => {
+        currentSentenceChunk.push(word);
+        currentSentenceLen += word.length + 1;
+
+        // Deteksi apakah kata ini adalah akhir dari sebuah kalimat (titik, seru, tanya)
+        const isEndOfSentence = /[.!?]$/.test(word) || /[.!?]\*\*$/.test(word) || /[.!?]"$/.test(word);
+
+        if (isEndOfSentence) {
+           // Jika menambah kalimat ini bikin halaman penuh, pindah ke halaman baru DULU
+           if (currLen + currentSentenceLen > MAX_CHAR_PER_PAGE && currPage.length > 0) {
+             paginated.push(currPage);
+             currPage = [];
+             currLen = 0;
+           }
+           
+           // Masukkan kalimat utuh ke halaman
+           currPage.push({ text: currentSentenceChunk.join(' ') + ' ', isParagraph: false });
+           currLen += currentSentenceLen;
+           
+           // Kosongkan memori kalimat sementara
+           currentSentenceChunk = [];
+           currentSentenceLen = 0;
         }
       });
-      
-      // Beri spasi lembut setelah satu paragraf selesai
-      currPageTokens.push({ type: 'space' });
+
+      // Jika ada sisa kata di akhir paragraf yang tidak ditutup dengan titik
+      if (currentSentenceChunk.length > 0) {
+         if (currLen + currentSentenceLen > MAX_CHAR_PER_PAGE && currPage.length > 0) {
+             paginated.push(currPage);
+             currPage = [];
+             currLen = 0;
+         }
+         currPage.push({ text: currentSentenceChunk.join(' '), isParagraph: false });
+         currLen += currentSentenceLen;
+      }
+
+      // Beri penanda bahwa ini adalah akhir dari sebuah paragraf
+      currPage.push({ text: '', isParagraph: true });
+      currLen += 40; // Beri sedikit jarak imajiner untuk spasi paragraf
     });
 
-    if (currPageTokens.length > 0) {
-      paginated.push(currPageTokens);
+    if (currPage.length > 0) {
+      paginated.push(currPage);
     }
 
     return { pages: paginated, toc: tocItems };
   }, []);
 
-  // Otomatis scroll ke atas kertas setiap kali halaman berubah
+  // Scroll otomatis ke atas
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentPage]);
@@ -92,14 +98,13 @@ export function Reader({ book, onBack }) {
   const increaseFont = () => setFontSize(prev => Math.min(prev + 0.1, 1.6));
   const decreaseFont = () => setFontSize(prev => Math.max(prev - 0.1, 0.85));
 
-  // --- 2. LOGIKA KLIK DAFTAR ISI PADA ALIRAN TEKS ---
+  // --- 2. PENCARIAN DAFTAR ISI ---
   const handleTocClick = (tocEntry) => {
     const cleanTitle = tocEntry.split('|')[0].replace(/\./g, '').trim().toLowerCase();
     
     let foundIndex = -1;
     for (let i = 0; i < pages.length; i++) {
-      // Satukan seluruh teks pada halaman untuk dicocokkan dengan judul bab
-      const pageText = pages[i].map(t => t.text || '').join(' ').toLowerCase();
+      const pageText = pages[i].map(item => item.text).join(' ').toLowerCase();
       if (pageText.includes(cleanTitle)) {
          foundIndex = i;
          break;
@@ -110,29 +115,50 @@ export function Reader({ book, onBack }) {
       setCurrentPage(foundIndex);
       setIsSidebarOpen(false); 
     } else {
-      alert(`Bagian "${tocEntry.split('|')[0].trim()}" belum tersedia di isi teks buku saat ini.`);
+      alert(`Bagian "${tocEntry.split('|')[0].trim()}" belum tersedia di teks saat ini.`);
     }
   };
 
-  // --- 3. RENDER ALIRAN TEKS SECARA FLUID ---
-  const formatPageContent = (tokens) => {
-    return (
-      <div style={{ ...styles.textFlow, fontSize: `${fontSize}rem` }}>
-        {tokens.map((token, i) => {
-          if (token.type === 'bold') {
-            return <strong key={i} style={styles.boldText}>{token.text.slice(2, -2)} </strong>;
+  // --- 3. RENDER TEKS (MENGGABUNGKAN KALIMAT MENJADI PARAGRAF UTUH) ---
+  const formatBoldText = (text) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i} style={styles.boldText}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
+  const renderPageContent = (pageItems) => {
+    const html = [];
+    let currentParaText = "";
+    
+    pageItems.forEach((item, index) => {
+       if (item.isParagraph) {
+          if (currentParaText.trim()) {
+             html.push(
+               <p key={index} style={{...styles.paragraph, fontSize: `${fontSize}rem`}}>
+                 {formatBoldText(currentParaText)}
+               </p>
+             );
           }
-          if (token.type === 'text') {
-            return <span key={i}>{token.text} </span>;
-          }
-          if (token.type === 'break' || token.type === 'space') {
-            // Menggunakan penanda khusus untuk membuat enter paragraf yang rapi secara inline
-            return <span key={i} style={styles.paraBreak} />;
-          }
-          return null;
-        })}
-      </div>
-    );
+          currentParaText = ""; // Reset untuk paragraf berikutnya
+       } else {
+          currentParaText += item.text;
+       }
+    });
+    
+    // Jika ada kalimat yang terputus halamannya (paragraf belum selesai)
+    if (currentParaText.trim()) {
+       html.push(
+         <p key="last" style={{...styles.paragraph, fontSize: `${fontSize}rem`}}>
+           {formatBoldText(currentParaText)}
+         </p>
+       );
+    }
+
+    return html;
   };
 
   if (pages.length === 0) return null;
@@ -168,7 +194,7 @@ export function Reader({ book, onBack }) {
       <div style={styles.topBar}>
         <div style={{display: 'flex', gap: '12px', alignItems: 'center'}}>
            <button onClick={onBack} style={styles.backButton}>← Beranda</button>
-           <button onClick={() => setIsSidebarOpen(true)} style={styles.iconBtn} aria-label="Open menu">
+           <button onClick={() => setIsSidebarOpen(true)} style={styles.iconBtn}>
              <Menu size={22} />
            </button>
         </div>
@@ -184,7 +210,7 @@ export function Reader({ book, onBack }) {
       {/* --- AREA KERTAS BUKU --- */}
       <div style={styles.readerContainer}>
         <div style={styles.paper}>
-          {formatPageContent(pages[currentPage])}
+          {renderPageContent(pages[currentPage])}
         </div>
       </div>
 
@@ -287,18 +313,13 @@ const styles = {
     padding: '30px 25px',
     borderRadius: '8px',
     boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-    minHeight: '62vh', 
+    minHeight: '60vh', 
   },
-  textFlow: {
+  paragraph: {
+    marginBottom: '16px',
     textAlign: 'justify',
     lineHeight: '1.85',
-    whiteSpace: 'normal',
-    wordBreak: 'break-word',
     transition: 'font-size 0.15s ease',
-  },
-  paraBreak: {
-    display: 'block',
-    height: '14px', 
   },
   boldText: {
     fontWeight: '700',
