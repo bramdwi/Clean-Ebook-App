@@ -6,7 +6,7 @@ Ihsan | 21
 Cara Hidup RASULULLAH | 27
 Mujahadah | 33
 Adab Masjid | 39
-Adab Musyawarah | 43
+Adab Musyawaroh | 43
 Adab Ta'lim | 45
 Adab Bayan | 48
 Adab Taskil. | 52
