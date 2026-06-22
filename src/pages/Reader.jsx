@@ -7,9 +7,13 @@ export function Reader({ book, onBack }) {
   const [fontSize, setFontSize] = useState(1.05); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
 
-  // --- 1. MESIN PEMISAH KALIMAT CERDAS ---
+  // --- 1. MESIN PEMISAH KALIMAT (SEKARANG MENDUKUNG BUKU DINAMIS) ---
   const { pages, toc } = useMemo(() => {
-    const lines = bookContent.split('\n');
+    // LOGIKA BARU: Jika buku punya teks sendiri (misal dari PDF), gunakan itu.
+    // Jika kosong, gunakan default bookContent (Asharoh)
+    const sourceText = book?.content || bookContent;
+    const lines = typeof sourceText === 'string' ? sourceText.split('\n') : [];
+    
     const tocItems = [];
     const cleanParagraphs = [];
 
@@ -75,7 +79,7 @@ export function Reader({ book, onBack }) {
     }
 
     return { pages: paginated, toc: tocItems };
-  }, []);
+  }, [book]); // Menambahkan 'book' sebagai dependency agar halaman di-render ulang saat buku ganti
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -91,34 +95,16 @@ export function Reader({ book, onBack }) {
   const increaseFont = () => setFontSize(prev => Math.min(prev + 0.1, 1.6));
   const decreaseFont = () => setFontSize(prev => Math.max(prev - 0.1, 0.85));
 
-  // --- 2. LOGIKA DAFTAR ISI PINTAR (FUZZY FALLBACK MATCHING) ---
+  // --- 2. LOGIKA DAFTAR ISI SAMA PERSIS (EXACT MATCH) ---
   const handleTocClick = (tocEntry) => {
-    const titlePart = tocEntry.split('|')[0].replace(/\./g, '').trim().toLowerCase();
-    
+    const titleTarget = tocEntry.split('|')[0].replace(/\*\*/g, '').trim().toLowerCase();
     let foundIndex = -1;
 
-    // Langkah A: Cari yang 100% Persis Dulu
     for (let i = 0; i < pages.length; i++) {
-      const pageText = pages[i].map(item => item.text).join(' ').toLowerCase();
-      if (pageText.includes(titlePart)) {
-         foundIndex = i;
-         break;
-      }
-    }
-
-    // Langkah B: Fallback Pintar (Jika "Adab Usuli" tidak ketemu, cari kata "Usuli")
-    if (foundIndex === -1) {
-      const words = titlePart.split(' ').filter(w => w.length > 3); // Ambil kata yang signifikan
-      const coreKeyword = words[words.length - 1]; // Ambil kata kunci terakhir (misal: 'usuli')
-      
-      if (coreKeyword) {
-        for (let i = 0; i < pages.length; i++) {
-          const pageText = pages[i].map(item => item.text).join(' ').toLowerCase();
-          if (pageText.includes(coreKeyword)) {
-             foundIndex = i;
-             break;
-          }
-        }
+      const pageTextClean = pages[i].map(item => item.text || '').join(' ').replace(/\*\*/g, '').toLowerCase();
+      if (pageTextClean.includes(titleTarget)) {
+        foundIndex = i;
+        break;
       }
     }
 
@@ -126,7 +112,7 @@ export function Reader({ book, onBack }) {
       setCurrentPage(foundIndex);
       setIsSidebarOpen(false); 
     } else {
-      alert(`Bagian "${tocEntry.split('|')[0].trim()}" belum dapat ditemukan di dalam lembaran halaman.`);
+      alert(`Pencarian Gagal!\n\nJudul di Daftar Isi: "${tocEntry.split('|')[0].trim()}"\n\nPastikan di dalam isi buku Anda sudah menulis kalimat tersebut dengan ejaan yang sama persis.`);
     }
   };
 
@@ -170,7 +156,12 @@ export function Reader({ book, onBack }) {
     return html;
   };
 
-  if (pages.length === 0) return null;
+  if (pages.length === 0) return (
+     <div style={{...styles.page, display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white'}}>
+        <p>Gagal memuat isi buku atau buku kosong.</p>
+        <button onClick={onBack} style={{...styles.backButton, marginLeft: '10px'}}>Kembali</button>
+     </div>
+  );
 
   return (
     <div style={styles.page}>
@@ -186,14 +177,16 @@ export function Reader({ book, onBack }) {
               </button>
             </div>
             <div style={styles.sidebarContent}>
-              {toc.map((item, index) => {
+              {toc.length > 0 ? toc.map((item, index) => {
                 const parts = item.split('|');
                 return (
                   <div key={index} onClick={() => handleTocClick(item)} style={styles.tocLink}>
                     <span style={styles.tocText}>{parts[0].trim()}</span>
                   </div>
                 );
-              })}
+              }) : (
+                <p style={{color: '#888', textAlign: 'center', marginTop: '20px'}}>Tidak ada daftar isi ditemukan</p>
+              )}
             </div>
           </div>
         </div>
